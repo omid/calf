@@ -119,7 +119,7 @@ function App() {
   urlParams.set("tz", timezone);
   urlParams.set("o", isOnline ? "1" : "0");
   urlParams.set("a", allDay ? "1" : "0");
-  const shareLink = `${origin}{urlPrefix}/share?${urlParams.toString()}`;
+  const shareLink = `${origin}${urlPrefix}/share?${urlParams.toString()}`;
 
   return (
     <div className="items-center flex flex-col p-4 ">
