@@ -12,7 +12,6 @@ import {
   DatePicker,
   Autocomplete,
   AutocompleteItem,
-  Link,
 } from "@heroui/react";
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
