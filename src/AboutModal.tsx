@@ -77,17 +77,6 @@ export default function AboutModal({
             <h3 className="font-semibold">Links</h3>
             <ul className="ml-5 list-disc space-y-1">
               <li>
-                Live app:{" "}
-                <a
-                  className="text-blue-600 underline"
-                  href={liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {liveUrl}
-                </a>
-              </li>
-              <li>
                 Repository:{" "}
                 <a
                   className="text-blue-600 underline"
@@ -96,17 +85,6 @@ export default function AboutModal({
                   rel="noopener noreferrer"
                 >
                   {repoUrl}
-                </a>
-              </li>
-              <li>
-                Actions status:{" "}
-                <a
-                  className="text-blue-600 underline"
-                  href={actionsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Deploy workflow
                 </a>
               </li>
               <li>
@@ -152,8 +130,7 @@ export default function AboutModal({
           </div>
 
           <p className="text-xs text-gray-500">
-            Built with Vite + React. MIT License. Feedback and contributions are
-            welcome!
+            MIT License. Feedback and contributions are welcome!
           </p>
         </div>
 

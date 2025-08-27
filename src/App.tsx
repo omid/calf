@@ -124,8 +124,8 @@ function App() {
   // date change handlers are handled inline with Calendar onChange
 
   return (
-    <div>
-      <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col items-center p-4">
+    <div className="items-center flex flex-col p-4 ">
+      <div className="rounded-lg w-[900px] bg-gray-50 text-gray-900 flex flex-col items-center p-4">
         <img src={logo} className="h-30 mb-2" alt="Calendar Factory" />
         <div className="text-3xl font-bold mb-">Calf (Calendar Factory)</div>
         <div className="mb-2 text-lg font-semibold">
@@ -318,35 +318,37 @@ function App() {
                   </div>
                 </div>
 
-                <div className="w-full flex flex-col gap-1">
-                  <label htmlFor="timezone" className="text-sm">
-                    Timezone
-                  </label>
-                  <Autocomplete
-                    startContent={
-                      <GlobeAltIcon className="h-5 w-5 text-gray-500" />
-                    }
-                    id="timezone"
-                    placeholder="Type to filter timezones"
-                    defaultItems={Intl.supportedValuesOf("timeZone").map(
-                      (tz) => ({ label: tz, value: tz })
-                    )}
-                    defaultSelectedKey={timezone}
-                    onSelectionChange={(key) => {
-                      if (!key) return;
-                      setTimezone(String(key));
-                    }}
-                  >
-                    {Intl.supportedValuesOf("timeZone").map((tz) => (
-                      <AutocompleteItem
-                        key={tz}
-                        className="text-gray-900 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
-                      >
-                        {tz}
-                      </AutocompleteItem>
-                    ))}
-                  </Autocomplete>
-                </div>
+                {!allDay && (
+                  <div className="w-full flex flex-col gap-1">
+                    <label htmlFor="timezone" className="text-sm">
+                      Timezone
+                    </label>
+                    <Autocomplete
+                      startContent={
+                        <GlobeAltIcon className="h-5 w-5 text-gray-500" />
+                      }
+                      id="timezone"
+                      placeholder="Type to filter timezones"
+                      defaultItems={Intl.supportedValuesOf("timeZone").map(
+                        (tz) => ({ label: tz, value: tz })
+                      )}
+                      defaultSelectedKey={timezone}
+                      onSelectionChange={(key) => {
+                        if (!key) return;
+                        setTimezone(String(key));
+                      }}
+                    >
+                      {Intl.supportedValuesOf("timeZone").map((tz) => (
+                        <AutocompleteItem
+                          key={tz}
+                          className="text-gray-900 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
+                        >
+                          {tz}
+                        </AutocompleteItem>
+                      ))}
+                    </Autocomplete>
+                  </div>
+                )}
                 {formError && (
                   <div className="text-sm text-red-600">{formError}</div>
                 )}
@@ -410,7 +412,7 @@ function App() {
       </div>
       <footer className="mt-10 w-full max-w-3xl text-center text-sm hover:text-gray-600">
         <Button
-          className="cursor-pointer rounded-lg border px-3 py-2 hover:bg-white"
+          className="cursor-pointer rounded-lg border px-3 py-2 bg-gray-500 hover:bg-gray-600"
           onPress={() => setAboutOpen(true)}
         >
           About &amp; Disclaimer

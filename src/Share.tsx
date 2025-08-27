@@ -1,6 +1,10 @@
 import ReactQRCode from "react-qr-code";
 import { generateICal } from "./icalUtils";
-import { ArrowDownTrayIcon, CalendarIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowDownTrayIcon,
+  CalendarDaysIcon,
+  CalendarIcon,
+} from "@heroicons/react/16/solid";
 import Apple from "./assets/apple.png";
 import GoogleCalendar from "./assets/google-calendar.png";
 import Office from "./assets/office.png";
@@ -73,7 +77,6 @@ export default function Share() {
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
         hour12: false,
         timeZone: tz,
       };
@@ -165,11 +168,11 @@ export default function Share() {
     "flex h-12 w-full items-center justify-center gap-3 rounded-lg shadow hover:shadow-lg text-base text-gray-800 transition";
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col p-4">
+    <div className="bg-gray-50 text-gray-900 flex flex-col p-4">
       <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
-        <div className="border rounded p-4 flex flex-row gap-5">
+        <div className="border border-gray-200 shadow-lg rounded p-4 flex flex-row gap-5">
           <div>
-            <CalendarIcon className="w-30 h-30 text-black" />
+            <CalendarDaysIcon className="w-40 h-40 text-gray-700" />
           </div>
           <div className="flex flex-col gap-2 justify-start text-left align-middle ">
             <div className="font-semibold">{event.title}</div>
