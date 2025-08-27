@@ -39,6 +39,8 @@ function App() {
   const [timezone, setTimezone] = useState(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
+  const urlPrefix = import.meta.env.MODE === "production" ? "/calf" : "";
+  const origin = window.location.origin;
   // controlled input for Autocomplete so default timezone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
   const [allDay, setAllDay] = useState(false);
@@ -72,7 +74,7 @@ function App() {
     document.addEventListener("click", onDocClick);
     return () => document.removeEventListener("click", onDocClick);
   }, []);
-  const isSharePage = window.location.pathname === "/share";
+  const isSharePage = window.location.pathname === urlPrefix + "/share";
 
   // Generate share link with params
   const urlParams = new URLSearchParams();
@@ -114,14 +116,10 @@ function App() {
   } catch {
     // ignore
   }
-  // include timezone name as well
   urlParams.set("tz", timezone);
-  // include flags: online (o) and all-day (a)
   urlParams.set("o", isOnline ? "1" : "0");
   urlParams.set("a", allDay ? "1" : "0");
-  const shareLink = `${window.location.origin}/share?${urlParams.toString()}`;
-
-  // date change handlers are handled inline with Calendar onChange
+  const shareLink = `${origin}{urlPrefix}/share?${urlParams.toString()}`;
 
   return (
     <div className="items-center flex flex-col p-4 ">
