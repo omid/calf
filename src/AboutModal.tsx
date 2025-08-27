@@ -1,3 +1,5 @@
+import { Button } from "@heroui/react";
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
@@ -15,9 +17,7 @@ export default function AboutModal({
 }: Props) {
   if (!isOpen) return null;
 
-  const liveUrl = `https://${username}.github.io/${repo}/`;
   const repoUrl = `https://github.com/${username}/${repo}`;
-  const actionsUrl = `${repoUrl}/actions/workflows/deploy.yml`;
 
   return (
     <div
@@ -38,13 +38,13 @@ export default function AboutModal({
           <h2 id="about-title" className="text-xl font-bold">
             Calf (Calendar Factory) — About & Disclaimer
           </h2>
-          <button
+          <Button
             className="ml-4 rounded p-1 text-gray-600 hover:bg-gray-100"
-            onClick={onClose}
+            onPress={onClose}
             aria-label="Close"
           >
             ✕
-          </button>
+          </Button>
         </div>
 
         <div className="mt-4 space-y-4 text-sm text-gray-700 text-left">
@@ -135,12 +135,12 @@ export default function AboutModal({
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
-          <button
+          <Button
             className="rounded-lg border bg-white px-4 py-2 text-gray-800 hover:shadow-sm"
-            onClick={onClose}
+            onPress={onClose}
           >
             Close
-          </button>
+          </Button>
           <a
             href={repoUrl}
             target="_blank"

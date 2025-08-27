@@ -355,6 +355,8 @@ function App() {
                 <Button
                   variant="solid"
                   color="primary"
+                  size="lg"
+                  className="font-bold"
                   onPress={() => {
                     // validate required fields: title, sDate, endDate
                     if (!form.title.trim() || !form.sDate || !form.eDate) {
@@ -399,12 +401,12 @@ function App() {
                   {shareLink}
                 </a>
                 <ReactQRCode value={shareLink} size={128} />
-                <button
+                <Button
                   className="mt-4 bg-gray-200 px-4 py-2 rounded"
-                  onClick={() => setStep("form")}
+                  onPress={() => setStep("form")}
                 >
                   Back
-                </button>
+                </Button>
               </div>
             )}
           </>

@@ -1,10 +1,6 @@
 import ReactQRCode from "react-qr-code";
 import { generateICal } from "./icalUtils";
-import {
-  ArrowDownTrayIcon,
-  CalendarDaysIcon,
-  CalendarIcon,
-} from "@heroicons/react/16/solid";
+import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import Apple from "./assets/apple.png";
 import GoogleCalendar from "./assets/google-calendar.png";
 import Office from "./assets/office.png";
