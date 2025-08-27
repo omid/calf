@@ -173,23 +173,25 @@ export default function Share() {
           <div className="flex flex-col gap-2 justify-start text-left align-middle ">
             <div className="font-semibold">{event.title}</div>
             <div className="text-sm text-gray-700">{event.description}</div>
-            <div className="text-sm text-gray-600 mt-2">
-              Location:{" "}
-              <Link
-                href={
-                  event.online
-                    ? event.location
-                    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        event.location
-                      )}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                {event.location}
-              </Link>
-            </div>
+            {event.location && (
+              <div className="text-sm text-gray-600 mt-2">
+                Location:{" "}
+                <Link
+                  href={
+                    event.online
+                      ? event.location
+                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                          event.location
+                        )}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  {event.location}
+                </Link>
+              </div>
+            )}
 
             {event.allday ? (
               <div className="text-sm text-gray-600">
