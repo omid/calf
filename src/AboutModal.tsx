@@ -1,0 +1,179 @@
+type Props = {
+  isOpen: boolean;
+  onClose: () => void;
+  username?: string;
+  repo?: string;
+  donateUrl?: string;
+};
+
+export default function AboutModal({
+  isOpen,
+  onClose,
+  username = "omid",
+  repo = "calf",
+  donateUrl = "https://github.com/sponsors/omid",
+}: Props) {
+  if (!isOpen) return null;
+
+  const liveUrl = `https://${username}.github.io/${repo}/`;
+  const repoUrl = `https://github.com/${username}/${repo}`;
+  const actionsUrl = `${repoUrl}/actions/workflows/deploy.yml`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[999] flex items-center justify-center"
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="about-title"
+    >
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      {/* Dialog */}
+      <div className="relative w-[92vw] max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+        <div className="flex items-start justify-between">
+          <h2 id="about-title" className="text-xl font-bold">
+            Calf (Calendar Factory) — About & Disclaimer
+          </h2>
+          <button
+            className="ml-4 rounded p-1 text-gray-600 hover:bg-gray-100"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-4 text-sm text-gray-700 text-left">
+          <p>
+            <strong>Calf</strong> helps you create a calendar event and share it
+            with a single link. Anyone with the link can add the event to their
+            calendar or download an iCal (<code>.ics</code>) file. Everything
+            runs entirely in your browser — no accounts, no backend.
+          </p>
+
+          <div>
+            <h3 className="font-semibold">What you can do</h3>
+            <ul className="ml-5 list-disc space-y-1">
+              <li>
+                Prefill event title, description, location or meeting link.
+              </li>
+              <li>
+                Pick start/end (or all-day) and choose a timezone; we encode the
+                details in the URL.
+              </li>
+              <li>
+                One-click buttons for Google, Outlook (Live), Apple, Office 365,
+                Yahoo, and raw <code>.ics</code>.
+              </li>
+              <li>Share a QR code to the event’s share page.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">Links</h3>
+            <ul className="ml-5 list-disc space-y-1">
+              <li>
+                Live app:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {liveUrl}
+                </a>
+              </li>
+              <li>
+                Repository:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={repoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {repoUrl}
+                </a>
+              </li>
+              <li>
+                Actions status:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={actionsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Deploy workflow
+                </a>
+              </li>
+              <li>
+                Donate:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={donateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {donateUrl}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold">Privacy</h3>
+            <ul className="ml-5 list-disc space-y-1">
+              <li>
+                All event generation happens locally in your browser; the iCal
+                file is created client-side.
+              </li>
+              <li>
+                When searching for places, the app may query a geocoding service
+                (e.g., OpenStreetMap’s Nominatim) to fetch suggestions.
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+            <h3 className="font-semibold text-amber-900">Disclaimer</h3>
+            <ul className="ml-5 list-disc space-y-1 text-amber-900">
+              <li>
+                <strong>GitHub may track created links.</strong> Links you open
+                via GitHub Pages can appear in repository traffic or analytics.
+              </li>
+              <li>
+                <strong>Updates may break older links.</strong> I aim to keep
+                things backward-compatible, but breaking changes can happen.
+              </li>
+            </ul>
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Built with Vite + React. MIT License. Feedback and contributions are
+            welcome!
+          </p>
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            className="rounded-lg border bg-white px-4 py-2 text-gray-800 hover:shadow-sm"
+            onClick={onClose}
+          >
+            Close
+          </button>
+          <a
+            href={repoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-black"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
