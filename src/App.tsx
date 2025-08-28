@@ -1,6 +1,5 @@
 import AboutModal from "./AboutModal";
 import { useState, useEffect, useRef } from "react";
-import "./App.css";
 import ReactQRCode from "react-qr-code";
 import Share from "./Share";
 import logo from "./assets/logo.png";
@@ -246,7 +245,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="flex flex-row gap-3">
+                <div className="flex flex-col xs:flex-row gap-3">
                   <div className="pt-1 flex-1 min-w-25 max-w-25 ">
                     <ChipCheckbox
                       checked={allDay}

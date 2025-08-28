@@ -8,6 +8,10 @@
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --breakpoint-xs: 440px;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -23,12 +27,15 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+#root {
+  width: 1280px;
+  margin: 0 auto;
+  text-align: center;
+}
+
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
 @media (prefers-color-scheme: light) {
@@ -41,5 +48,17 @@ body {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@media (min-width: 640px) {
+  #root {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 1024px) {
+  #root {
+    max-width: 1280px;
   }
 }

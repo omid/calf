@@ -1,6 +1,5 @@
 import {
   ArrowTopRightOnSquareIcon,
-  ArrowUpOnSquareIcon,
   XMarkIcon,
 } from "@heroicons/react/16/solid";
 import { Button } from "@heroui/react";
