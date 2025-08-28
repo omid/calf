@@ -1,5 +1,5 @@
 import AboutModal from "./AboutModal";
-import { useState, useEffect, useRef, type Key } from "react";
+import { useState, useEffect, useRef, useMemo, type Key } from "react";
 import ReactQRCode from "react-qr-code";
 import Share from "./Share";
 import logo from "./assets/logo.png";
@@ -63,20 +63,24 @@ function App() {
     now(timezone).add({ hours: 1 })
   );
 
-  // debounced search wrapper
-  const debouncedSearch = debounce(async (arg: unknown) => {
-    const q = String(arg ?? "");
-    if (!q || q.trim().length < 2) {
-      setSuggestions([]);
-      return;
-    }
-    try {
-      const res = await searchPlaces(q, 6);
-      setSuggestions(res);
-    } catch {
-      setSuggestions([]);
-    }
-  }, 300);
+  // debounced search wrapper, memoized to avoid recreation on each render
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(async (arg: unknown) => {
+        const q = String(arg ?? "");
+        if (!q || q.trim().length < 2) {
+          setSuggestions([]);
+          return;
+        }
+        try {
+          const res = await searchPlaces(q, 6);
+          setSuggestions(res);
+        } catch {
+          setSuggestions([]);
+        }
+      }, 600),
+    []
+  );
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -370,7 +374,6 @@ function App() {
                   size="lg"
                   className="font-bold"
                   onPress={() => {
-                    console.log(form);
                     // validate required fields: title, sDate, endDate
                     if (!form.title.trim() || !form.sDate || !form.eDate) {
                       setFormError(
