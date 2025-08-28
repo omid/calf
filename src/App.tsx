@@ -8,7 +8,6 @@ import {
   Button,
   Input,
   Textarea,
-  Checkbox,
   DatePicker,
   Autocomplete,
   AutocompleteItem,
@@ -16,11 +15,11 @@ import {
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
 import {
-  CalendarIcon,
   ChatBubbleBottomCenterTextIcon,
   GlobeAltIcon,
   MapPinIcon,
 } from "@heroicons/react/16/solid";
+import ChipCheckbox from "./ChipCheckbox";
 
 const initialForm = {
   title: "",
@@ -121,16 +120,22 @@ function App() {
   urlParams.set("a", allDay ? "1" : "0");
   const shareLink = `${origin}${urlPrefix}/share?${urlParams.toString()}`;
 
+  const FixedLabel = ({ children }: { children: React.ReactNode }) => (
+    <span className="inline-block w-20">{children}</span>
+  );
+
   return (
-    <div className="items-center flex flex-col p-4 ">
-      <div className="rounded-lg w-[900px] bg-gray-50 text-gray-900 flex flex-col items-center p-4">
-        <img src={logo} className="h-30 mb-2" alt="Calendar Factory" />
-        <div className="text-3xl font-bold mb-">Calf (Calendar Factory)</div>
-        <div className="mb-2 text-lg font-semibold">
+    <div className="flex flex-col items-center sm:p-2 p-0">
+      <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-900 flex flex-col items-center p-2 sm:p-4">
+        <img src={logo} className="h-20 sm:h-28 md:h-30 mb-2" alt="Calf" />
+        <div className="text-2xl sm:text-3xl font-bold mb-1">
+          Calf (Calendar Factory)
+        </div>
+        <div className="mb-2 text-md sm:text-lg font-semibold">
           Create calendar events and share them easily!
         </div>
         {!isSharePage && (
-          <div className="mb-6 text-gray-600 max-w-3xl text-center">
+          <div className="mb-6 text-gray-600 max-w-full sm:max-w-2xl md:max-w-3xl text-center text-sm sm:text-base">
             Fill in the details below to generate a shareable calendar event
             link.
             <br />
@@ -143,7 +148,7 @@ function App() {
         ) : (
           <>
             {step === "form" && (
-              <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
+              <div className="w-full max-w-full sm:max-w-2xl md:max-w-3xl bg-white rounded shadow p-2 sm:p-4 md:p-6 flex flex-col gap-3 sm:gap-4">
                 <Input
                   value={form.title}
                   onChange={(e) =>
@@ -163,8 +168,11 @@ function App() {
                   placeholder="Description"
                   rows={3}
                 />
-                <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-                  <div className="relative flex-1" ref={containerRef}>
+                <div className="flex flex-row items-center gap-2">
+                  <div
+                    className="relative flex-1 min-w-0 max-w-[70vw]"
+                    ref={containerRef}
+                  >
                     <Input
                       value={form.location}
                       onChange={(e) => {
@@ -211,8 +219,8 @@ function App() {
                     )}
                   </div>
 
-                  <div className="flex items-center">
-                    <Checkbox
+                  <div className="flex items-center flex-shrink-0 ml-2">
+                    <ChipCheckbox
                       checked={isOnline}
                       onChange={(eOrVal) => {
                         const val =
@@ -232,121 +240,95 @@ function App() {
                           setShowSuggestions(false);
                         }
                       }}
+                      text="Online"
                       id="online-switch"
                     />
-                    <label
-                      htmlFor="online-switch"
-                      className="text-sm flex items-center"
-                    >
-                      <span>Online</span>
-                    </label>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center md:space-x-4">
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-sm">
-                      Start Date{!allDay && " & Time"}
-                    </label>
-                    <DatePicker
-                      startContent={
-                        <CalendarIcon className="h-5 w-5 text-gray-500" />
-                      }
-                      onChange={(val: unknown) => {
-                        const dt = new Date(String(val));
-                        if (!isNaN(dt.getTime())) {
-                          setForm((f) => ({
-                            ...f,
-                            sDate: dt.toISOString().slice(0, 10),
-                            sTime: dt.toISOString().slice(11, 16),
-                          }));
-                        }
+                <div className="flex flex-row gap-3">
+                  <div className="pt-1 flex-1 min-w-25 max-w-25 ">
+                    <ChipCheckbox
+                      checked={allDay}
+                      onValueChange={(val: boolean) => {
+                        setAllDay(val);
                       }}
-                      granularity={allDay ? "day" : "minute"}
+                      text="All day"
+                      id="all-day-switch"
                     />
                   </div>
 
-                  <div className="flex-1 flex flex-col gap-1">
-                    <label className="text-sm">
-                      End Date{!allDay && " & Time"}
-                    </label>
-                    <DatePicker
-                      startContent={
-                        <CalendarIcon className="h-5 w-5 text-gray-500" />
-                      }
-                      onChange={(val: unknown) => {
-                        const dt = new Date(String(val));
-                        if (!isNaN(dt.getTime())) {
-                          setForm((f) => ({
-                            ...f,
-                            eTime: dt.toISOString().slice(11, 16),
-                            eDate: dt.toISOString().slice(0, 10),
-                            sDate: f.sDate || dt.toISOString().slice(0, 10),
-                          }));
-                        }
-                      }}
-                      granularity={allDay ? "day" : "minute"}
-                    />
-                  </div>
-
-                  <div className="flex items-center pt-6">
-                    <div className="flex items-center">
-                      <Checkbox
-                        checked={allDay}
-                        onChange={(eOrVal) => {
-                          const val =
-                            eOrVal &&
-                            (eOrVal as unknown as { target?: unknown }).target
-                              ? Boolean(
-                                  (
-                                    eOrVal as unknown as {
-                                      target: HTMLInputElement;
-                                    }
-                                  ).target.checked
-                                )
-                              : Boolean(eOrVal);
-                          setAllDay(val);
+                  <div className="gap-3 flex flex-col flex-auto">
+                    <div className="col-start-1">
+                      <DatePicker
+                        label={<FixedLabel>Start Date</FixedLabel>}
+                        labelPlacement="outside-left"
+                        onChange={(val: unknown) => {
+                          const dt = new Date(String(val));
+                          if (!isNaN(dt.getTime())) {
+                            setForm((f) => ({
+                              ...f,
+                              sDate: dt.toISOString().slice(0, 10),
+                              sTime: dt.toISOString().slice(11, 16),
+                            }));
+                          }
                         }}
-                        id="all-day-switch"
+                        granularity={allDay ? "day" : "minute"}
                       />
-                      <label htmlFor="all-day-switch" className="text-sm">
-                        All day
-                      </label>
                     </div>
+
+                    <div className="col-start-1">
+                      <DatePicker
+                        label={<FixedLabel>End Date</FixedLabel>}
+                        labelPlacement="outside-left"
+                        onChange={(val: unknown) => {
+                          const dt = new Date(String(val));
+                          if (!isNaN(dt.getTime())) {
+                            setForm((f) => ({
+                              ...f,
+                              eTime: dt.toISOString().slice(11, 16),
+                              eDate: dt.toISOString().slice(0, 10),
+                              sDate: f.sDate || dt.toISOString().slice(0, 10),
+                            }));
+                          }
+                        }}
+                        granularity={allDay ? "day" : "minute"}
+                      />
+                    </div>
+                    {!allDay && (
+                      <div className="col-start-1">
+                        <Autocomplete
+                          startContent={
+                            <GlobeAltIcon className="h-5 w-5 text-gray-500" />
+                          }
+                          label={<FixedLabel>Timezone</FixedLabel>}
+                          labelPlacement="outside-left"
+                          id="timezone"
+                          placeholder="Type to filter timezones"
+                          defaultItems={Intl.supportedValuesOf("timeZone").map(
+                            (tz) => ({ label: tz, value: tz })
+                          )}
+                          fullWidth={false}
+                          defaultSelectedKey={timezone}
+                          onSelectionChange={(key) => {
+                            if (!key) return;
+                            setTimezone(String(key));
+                          }}
+                        >
+                          {Intl.supportedValuesOf("timeZone").map((tz) => (
+                            <AutocompleteItem
+                              key={tz}
+                              className="text-gray-900 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
+                            >
+                              {tz}
+                            </AutocompleteItem>
+                          ))}
+                        </Autocomplete>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {!allDay && (
-                  <div className="w-full flex flex-col gap-1">
-                    <label htmlFor="timezone" className="text-sm">
-                      Timezone
-                    </label>
-                    <Autocomplete
-                      startContent={
-                        <GlobeAltIcon className="h-5 w-5 text-gray-500" />
-                      }
-                      id="timezone"
-                      placeholder="Type to filter timezones"
-                      defaultItems={Intl.supportedValuesOf("timeZone").map(
-                        (tz) => ({ label: tz, value: tz })
-                      )}
-                      defaultSelectedKey={timezone}
-                      onSelectionChange={(key) => {
-                        if (!key) return;
-                        setTimezone(String(key));
-                      }}
-                    >
-                      {Intl.supportedValuesOf("timeZone").map((tz) => (
-                        <AutocompleteItem
-                          key={tz}
-                          className="text-gray-900 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
-                        >
-                          {tz}
-                        </AutocompleteItem>
-                      ))}
-                    </Autocomplete>
-                  </div>
-                )}
                 {formError && (
                   <div className="text-sm text-red-600">{formError}</div>
                 )}

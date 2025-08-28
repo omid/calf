@@ -1,3 +1,4 @@
+import { XMarkIcon } from "@heroicons/react/16/solid";
 import { Button } from "@heroui/react";
 
 type Props = {
@@ -35,15 +36,15 @@ export default function AboutModal({
       {/* Dialog */}
       <div className="relative w-[92vw] max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex items-start justify-between">
-          <h2 id="about-title" className="text-xl font-bold">
+          <h2 id="about-title" className="text-xl font-bold text-black">
             Calf (Calendar Factory) — About & Disclaimer
           </h2>
           <Button
-            className="ml-4 rounded p-1 text-gray-600 hover:bg-gray-100"
+            className="bg-white min-w-auto"
             onPress={onClose}
             aria-label="Close"
           >
-            ✕
+            <XMarkIcon className="h-6 w-6 text-gray-600" />
           </Button>
         </div>
 
