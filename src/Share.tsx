@@ -248,7 +248,7 @@ export default function Share() {
         </div>
         <div className="font-semibold">Add to your calendar:</div>
 
-        <div className="grid xs:grid-cols-3 grid-cols-1 gap-3 w-full">
+        <div className="grid xs:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-3 w-full">
           <Link
             href={googleLink}
             target="_blank"

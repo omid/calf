@@ -1,5 +1,5 @@
 import AboutModal from "./AboutModal";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type Key } from "react";
 import ReactQRCode from "react-qr-code";
 import Share from "./Share";
 import logo from "./assets/logo.png";
@@ -10,6 +10,7 @@ import {
   DatePicker,
   Autocomplete,
   AutocompleteItem,
+  type DateValue,
 } from "@heroui/react";
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
@@ -19,6 +20,13 @@ import {
   MapPinIcon,
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
+import {
+  now,
+  getLocalTimeZone,
+  ZonedDateTime,
+  CalendarDate,
+  fromDate,
+} from "@internationalized/date";
 
 const initialForm = {
   title: "",
@@ -30,13 +38,14 @@ const initialForm = {
   eTime: "",
 };
 
+const isZoned = (v: DateValue | null): v is ZonedDateTime =>
+  !!v && "timeZone" in v;
+
 function App() {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState<"form" | "share">("form");
   const [isOnline, setIsOnline] = useState(false);
-  const [timezone, setTimezone] = useState(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+  const [timezone, setTimezone] = useState(getLocalTimeZone());
   const urlPrefix = import.meta.env.MODE === "production" ? "/calf" : "";
   const origin = window.location.origin;
   // controlled input for Autocomplete so default timezone is visible
@@ -47,6 +56,13 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [startDate, setStartDate] = useState<
+    ZonedDateTime | CalendarDate | null
+  >(now(timezone));
+  const [endDate, setEndDate] = useState<ZonedDateTime | CalendarDate | null>(
+    now(timezone).add({ hours: 1 })
+  );
+
   // debounced search wrapper
   const debouncedSearch = debounce(async (arg: unknown) => {
     const q = String(arg ?? "");
@@ -91,11 +107,11 @@ function App() {
     const hh = pad(d.getHours());
     const mm = pad(d.getMinutes());
     const ss = pad(d.getSeconds());
-    const tzMin = -d.getTimezoneOffset(); // minutes east of UTC
-    const sign = tzMin >= 0 ? "+" : "-";
-    const tzH = pad(Math.floor(Math.abs(tzMin) / 60));
-    const tzM = pad(Math.abs(tzMin) % 60);
-    return `${y}${m}${day}T${hh}${mm}${ss}${sign}${tzH}${tzM}`;
+    // const tzMin = -d.getTimezoneOffset(); // minutes east of UTC
+    // const sign = tzMin >= 0 ? "+" : "-";
+    // const tzH = pad(Math.floor(Math.abs(tzMin) / 60));
+    // const tzM = pad(Math.abs(tzMin) % 60);
+    return `${y}${m}${day}T${hh}${mm}${ss}Z`;
   };
 
   try {
@@ -122,6 +138,42 @@ function App() {
   const FixedLabel = ({ children }: { children: React.ReactNode }) => (
     <span className="inline-block w-20">{children}</span>
   );
+
+  const handleEndChange = (date: ZonedDateTime | CalendarDate | null) => {
+    if (!date) return;
+    setEndDate(date);
+    const dt = date.toDate(timezone);
+    setForm((f) => ({
+      ...f,
+      eDate: dt.toISOString().slice(0, 10),
+      eTime: !isNaN(dt.getTime()) ? dt.toISOString().slice(11, 16) : "",
+    }));
+  };
+
+  const handleStartChange = (date: ZonedDateTime | CalendarDate | null) => {
+    if (!date) return;
+    setStartDate(date);
+    const dt = date.toDate(timezone);
+    setForm((f) => ({
+      ...f,
+      sDate: dt.toISOString().slice(0, 10),
+      sTime: !isNaN(dt.getTime()) ? dt.toISOString().slice(11, 16) : "",
+    }));
+    if (date && !endDate) {
+      setEndDate(date.add({ hours: 1 }));
+    }
+  };
+
+  const handleTimezoneChange = (tz: Key | null) => {
+    if (!tz) return;
+    setTimezone(String(tz));
+    if (startDate && isZoned(startDate)) {
+      handleStartChange(fromDate(startDate.toDate(), String(tz)));
+    }
+    if (endDate && isZoned(endDate)) {
+      handleEndChange(fromDate(endDate.toDate(), String(tz)));
+    }
+  };
 
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
@@ -262,16 +314,8 @@ function App() {
                       <DatePicker
                         label={<FixedLabel>Start Date</FixedLabel>}
                         labelPlacement="outside-left"
-                        onChange={(val: unknown) => {
-                          const dt = new Date(String(val));
-                          if (!isNaN(dt.getTime())) {
-                            setForm((f) => ({
-                              ...f,
-                              sDate: dt.toISOString().slice(0, 10),
-                              sTime: dt.toISOString().slice(11, 16),
-                            }));
-                          }
-                        }}
+                        value={startDate}
+                        onChange={handleStartChange}
                         granularity={allDay ? "day" : "minute"}
                       />
                     </div>
@@ -280,17 +324,8 @@ function App() {
                       <DatePicker
                         label={<FixedLabel>End Date</FixedLabel>}
                         labelPlacement="outside-left"
-                        onChange={(val: unknown) => {
-                          const dt = new Date(String(val));
-                          if (!isNaN(dt.getTime())) {
-                            setForm((f) => ({
-                              ...f,
-                              eTime: dt.toISOString().slice(11, 16),
-                              eDate: dt.toISOString().slice(0, 10),
-                              sDate: f.sDate || dt.toISOString().slice(0, 10),
-                            }));
-                          }
-                        }}
+                        value={endDate}
+                        onChange={handleEndChange}
                         granularity={allDay ? "day" : "minute"}
                       />
                     </div>
@@ -309,10 +344,8 @@ function App() {
                           )}
                           fullWidth={false}
                           defaultSelectedKey={timezone}
-                          onSelectionChange={(key) => {
-                            if (!key) return;
-                            setTimezone(String(key));
-                          }}
+                          onSelectionChange={handleTimezoneChange}
+                          isClearable={false}
                         >
                           {Intl.supportedValuesOf("timeZone").map((tz) => (
                             <AutocompleteItem
@@ -337,6 +370,7 @@ function App() {
                   size="lg"
                   className="font-bold"
                   onPress={() => {
+                    console.log(form);
                     // validate required fields: title, sDate, endDate
                     if (!form.title.trim() || !form.sDate || !form.eDate) {
                       setFormError(
