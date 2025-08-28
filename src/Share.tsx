@@ -82,13 +82,28 @@ export default function Share() {
     }
   };
 
-  const formatDateOnly = (date: Date, tz?: string) => {
+  const formatInTime = (date: Date, tz?: string) => {
+    if (!tz) return date.toUTCString();
+    try {
+      const opts: Intl.DateTimeFormatOptions = {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: tz,
+      };
+      return new Intl.DateTimeFormat(undefined, opts).format(date);
+    } catch {
+      return date.toUTCString();
+    }
+  };
+
+  const formatDateOnly = (date: Date) => {
     try {
       const opts: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "short",
         day: "numeric",
-        timeZone: tz,
+        weekday: "long",
       };
       return new Intl.DateTimeFormat(undefined, opts).format(date);
     } catch {
@@ -167,11 +182,16 @@ export default function Share() {
     <div className="bg-gray-50 text-gray-900 flex flex-col p-4">
       <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
         <div className="border border-gray-200 shadow-lg rounded p-4 flex flex-row gap-5">
-          <div>
+          <div className="hidden xs:block">
             <CalendarDaysIcon className="w-40 h-40 text-gray-700" />
           </div>
           <div className="flex flex-col gap-2 justify-start text-left align-middle ">
-            <div className="font-semibold">{event.title}</div>
+            <div className="flex flex-row items-center gap-3">
+              <div className="xs:hidden">
+                <CalendarDaysIcon className="w-10 h-10 text-gray-700" />
+              </div>
+              <div className="font-semibold wrap-anywhere">{event.title}</div>
+            </div>
             <div className="text-sm text-gray-700">{event.description}</div>
             {event.location && (
               <div className="text-sm text-gray-600 mt-2">
@@ -192,12 +212,23 @@ export default function Share() {
                 </Link>
               </div>
             )}
-
             {event.allday ? (
               <div className="text-sm text-gray-600">
-                {formatDateOnly(startDt, event.timezone)} to{" "}
-                {formatDateOnly(endDt, event.timezone)} (All day)
+                {formatDateOnly(startDt)} to {formatDateOnly(endDt)} (All day)
               </div>
+            ) : formatDateOnly(startDt) === formatDateOnly(endDt) ? (
+              <>
+                <div className="text-sm text-gray-600">
+                  {formatDateOnly(startDt)}
+                </div>
+                <div className="text-sm text-gray-600">
+                  {formatInTime(startDt, event.timezone)} to{" "}
+                  {formatInTime(endDt, event.timezone)}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Timezone: {tzDisplay}
+                </div>
+              </>
             ) : (
               <>
                 <div className="text-sm text-gray-600">
