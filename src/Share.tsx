@@ -52,8 +52,7 @@ export default function Share() {
   };
 
   const startDt = parseCalDate(event.start) || new Date();
-  const endDt =
-    parseCalDate(event.end) || new Date(startDt.getTime() + 60 * 60 * 1000);
+  const endDt = parseCalDate(event.end);
 
   const tzDisplay = (() => {
     if (event.timezone) return event.timezone;
@@ -126,8 +125,8 @@ export default function Share() {
     location: event.location,
     sDate: startDt.toISOString().slice(0, 10),
     sTime: startDt.toISOString().slice(11, 19).slice(0, 5),
-    eDate: endDt.toISOString().slice(0, 10),
-    eTime: endDt.toISOString().slice(11, 19).slice(0, 5),
+    eDate: endDt ? endDt.toISOString().slice(0, 10) : undefined,
+    eTime: endDt ? endDt.toISOString().slice(11, 19).slice(0, 5) : undefined,
     timezone: event.timezone || undefined,
   };
 
@@ -142,34 +141,40 @@ export default function Share() {
       .replace(/[-:]/g, "")
       .replace(/\.\d{3}/, "");
   const startStr = toCalDate(startDt);
-  const endStr = toCalDate(endDt);
+  const endStr = endDt ? toCalDate(endDt) : undefined;
   const details = event.description
     ? encodeURIComponent(event.description)
     : "";
 
-  const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-    event.title
-  )}&details=${details}&location=${encodeURIComponent(
-    event.location
-  )}&dates=${startStr}/${endStr}`;
+  const googleLink =
+    `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      event.title
+    )}&details=${details}&location=${encodeURIComponent(
+      event.location
+    )}&dates=${startStr}` + (endStr ? `/${endStr}` : "");
 
-  const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
-    event.title
-  )}&body=${details}&location=${encodeURIComponent(
-    event.location
-  )}&startdt=${startDt.toISOString()}&enddt=${endDt.toISOString()}`;
+  const outlookLink =
+    `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
+      event.title
+    )}&body=${details}&location=${encodeURIComponent(
+      event.location
+    )}&startdt=${startDt.toISOString()}` +
+    (endDt ? `&enddt=${endDt.toISOString()}` : "");
 
-  const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
-    event.title
-  )}&body=${details}&location=${encodeURIComponent(
-    event.location
-  )}&startdt=${startDt.toISOString()}&enddt=${endDt.toISOString()}`;
+  const office365Link =
+    `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
+      event.title
+    )}&body=${details}&location=${encodeURIComponent(
+      event.location
+    )}&startdt=${startDt.toISOString()}` +
+    (endDt ? `&enddt=${endDt.toISOString()}` : "");
 
-  const yahooLink = `https://calendar.yahoo.com/?v=60&title=${encodeURIComponent(
-    event.title
-  )}&st=${startStr}&et=${endStr}&desc=${details}&in_loc=${encodeURIComponent(
-    event.location
-  )}`;
+  const yahooLink =
+    `https://calendar.yahoo.com/?v=60&title=${encodeURIComponent(
+      event.title
+    )}&st=${startStr}&desc=${details}&in_loc=${encodeURIComponent(
+      event.location
+    )}` + (endStr ? `&et=${endStr}` : "");
 
   // Apple Calendar: open the ICS (do not force download) so the OS can hand it to Calendar
   const appleLink = icalUrl; // keep as blob; omit `download` attr on the anchor
@@ -212,9 +217,26 @@ export default function Share() {
                 </Link>
               </div>
             )}
-            {event.allday ? (
+            {!endDt ? (
+              <>
+                <div className="text-sm text-gray-600">
+                  {formatDateOnly(startDt)} {event.allday && "(All day)"}
+                </div>
+                {!event.allday && (
+                  <>
+                    <div className="text-sm text-gray-600">
+                      From {formatInTime(startDt, event.timezone)}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Timezone: {tzDisplay}
+                    </div>
+                  </>
+                )}
+              </>
+            ) : event.allday ? (
               <div className="text-sm text-gray-600">
-                {formatDateOnly(startDt)} to {formatDateOnly(endDt)} (All day)
+                {formatDateOnly(startDt)} <br />
+                to {formatDateOnly(endDt)} (All day)
               </div>
             ) : formatDateOnly(startDt) === formatDateOnly(endDt) ? (
               <>

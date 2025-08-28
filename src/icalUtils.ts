@@ -17,8 +17,6 @@ export function generateICal({
   eDate?: string;
   eTime?: string;
 }) {
-  const endDateStr = eDate || sDate;
-  const endTimeStr = eTime || sTime;
   // end date/time strings are constructed below as JS Dates
   const vevent = new ICAL.Component("vevent");
   vevent.addPropertyWithValue("summary", title);
@@ -27,16 +25,16 @@ export function generateICal({
 
   // Build JS Date objects from provided date/time and convert to ICAL.Time
   const startIso = `${sDate}T${sTime}:00Z`;
-  const endIso = `${endDateStr}T${endTimeStr}:00Z`;
+  const endIso = eDate && eTime ? `${eDate}T${eTime}:00Z` : undefined;
   const startDate = new Date(startIso);
-  const endDate = new Date(endIso);
+  const endDate = endIso ? new Date(endIso) : undefined;
 
   const tStart = ICAL.Time.fromJSDate(startDate);
-  const tEnd = ICAL.Time.fromJSDate(endDate);
+  const tEnd = endDate ? ICAL.Time.fromJSDate(endDate) : undefined;
 
   // Attach dtstart/dtend as ICAL.Time objects
   vevent.addPropertyWithValue("dtstart", tStart);
-  vevent.addPropertyWithValue("dtend", tEnd);
+  if (tEnd) vevent.addPropertyWithValue("dtend", tEnd);
 
   // Add DTSTAMP and UID for completeness
   vevent.addPropertyWithValue("dtstamp", ICAL.Time.now());
