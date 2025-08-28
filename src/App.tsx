@@ -106,13 +106,11 @@ function App() {
     // ignore
   }
   try {
-    if (form.eDate) {
-      const endDt = new Date(
-        `${form.eDate || form.sDate}T${form.eTime || form.sTime || "00"}:00`
-      );
-      const endParam = formatWithOffset(endDt);
-      urlParams.set("e", endParam);
-    }
+    const endDt = new Date(
+      `${form.eDate || form.sDate}T${form.eTime || form.sTime || "00"}:00`
+    );
+    const endParam = formatWithOffset(endDt);
+    urlParams.set("e", endParam);
   } catch {
     // ignore
   }
@@ -339,29 +337,27 @@ function App() {
                   size="lg"
                   className="font-bold"
                   onPress={() => {
-                    // validate required fields: title, sDate
-                    if (!form.title.trim() || !form.sDate) {
+                    // validate required fields: title, sDate, endDate
+                    if (!form.title.trim() || !form.sDate || !form.eDate) {
                       setFormError(
-                        "Title, Start date are required to create an event."
+                        "Title, Start date and End date are required to create an event."
                       );
                       return;
                     }
                     // validate start < end
-                    if (form.eDate) {
-                      const startIso = `${form.sDate}T${form.sTime || "00"}:00`;
-                      const endIso = `${form.eDate}T${form.eTime || "00"}:00`;
-                      const startDt = new Date(startIso);
-                      const endDt = new Date(endIso);
-                      if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) {
-                        setFormError("Invalid start or end date/time.");
-                        return;
-                      }
-                      if (endDt <= startDt) {
-                        setFormError(
-                          "End date/time must be after Start date/time."
-                        );
-                        return;
-                      }
+                    const startIso = `${form.sDate}T${form.sTime || "00"}:00`;
+                    const endIso = `${form.eDate}T${form.eTime || "00"}:00`;
+                    const startDt = new Date(startIso);
+                    const endDt = new Date(endIso);
+                    if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) {
+                      setFormError("Invalid start or end date/time.");
+                      return;
+                    }
+                    if (endDt <= startDt) {
+                      setFormError(
+                        "End date/time must be after Start date/time."
+                      );
+                      return;
                     }
                     setFormError("");
                     setStep("share");
