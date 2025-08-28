@@ -6,8 +6,11 @@
 
 ---
 
-Fill in the details below to generate a shareable calendar event link.  
+Fill in the details of the event and generate a shareable calendar event link.
+
 Anyone with the link can add the event to their calendar or download an iCal file.
+
+Suitable to share an event on social media posts or emails.
 
 ---
 

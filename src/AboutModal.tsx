@@ -1,4 +1,8 @@
-import { XMarkIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowTopRightOnSquareIcon,
+  ArrowUpOnSquareIcon,
+  XMarkIcon,
+} from "@heroicons/react/16/solid";
 import { Button } from "@heroui/react";
 
 type Props = {
@@ -55,24 +59,6 @@ export default function AboutModal({
             calendar or download an iCal (<code>.ics</code>) file. Everything
             runs entirely in your browser — no accounts, no backend.
           </p>
-
-          <div>
-            <h3 className="font-semibold">What you can do</h3>
-            <ul className="ml-5 list-disc space-y-1">
-              <li>
-                Prefill event title, description, location or meeting link.
-              </li>
-              <li>
-                Pick start/end (or all-day) and choose a timezone; we encode the
-                details in the URL.
-              </li>
-              <li>
-                One-click buttons for Google, Outlook (Live), Apple, Office 365,
-                Yahoo, and raw <code>.ics</code>.
-              </li>
-              <li>Share a QR code to the event’s share page.</li>
-            </ul>
-          </div>
 
           <div>
             <h3 className="font-semibold">Links</h3>
@@ -146,9 +132,10 @@ export default function AboutModal({
             href={repoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-black"
+            className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-800"
           >
             View on GitHub
+            <ArrowTopRightOnSquareIcon className="ml-2 inline h-5 w-5" />
           </a>
         </div>
       </div>
