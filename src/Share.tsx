@@ -246,9 +246,7 @@ export default function Share() {
         </div>
         <div className="font-semibold">Add to your calendar:</div>
 
-        {/* Grid: 3 columns, two rows; each button takes 1/3 width and same height */}
-        <div className="grid grid-cols-3 gap-3 w-full">
-          {/* Row 1: Google, Outlook, Apple */}
+        <div className="grid xs:grid-cols-3 grid-cols-1 gap-3 w-full">
           <Link
             href={googleLink}
             target="_blank"
@@ -286,7 +284,6 @@ export default function Share() {
             Apple Calendar
           </Link>
 
-          {/* Row 2: Office 365, Yahoo, iCal file */}
           <Link
             href={office365Link}
             target="_blank"
