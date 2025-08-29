@@ -1434,17 +1434,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/retry/-/retry-0.4.3.tgz#c2b9d2e374ee62c586d3adbea87199b1d7a7a6ba"
   integrity sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==
 
-"@internationalized/date@3.8.2":
+"@internationalized/date@3.8.2", "@internationalized/date@^3.8.2", "@internationalized/date@^3.9.0":
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/@internationalized/date/-/date-3.8.2.tgz#977620c1407cc6830fd44cb505679d23c599e119"
   integrity sha512-/wENk7CbvLbkUvX1tu0mwq49CVkkWpkXubGel6birjRPyo6uQ4nQpnq5xZu823zRCwwn82zgHrvgF1vZyvmVgA==
-  dependencies:
-    "@swc/helpers" "^0.5.0"
-
-"@internationalized/date@^3.8.2", "@internationalized/date@^3.9.0":
-  version "3.9.0"
-  resolved "https://registry.yarnpkg.com/@internationalized/date/-/date-3.9.0.tgz#cf241989b5dd07a2a9f1c91aabd2ad93968a0cc3"
-  integrity sha512-yaN3brAnHRD+4KyyOsJyk49XUvj2wtbNACSqg0bz3u8t2VuzhC8Q5dfRnrSxjnnbDb+ienBnkn1TzQfE154vyg==
   dependencies:
     "@swc/helpers" "^0.5.0"
 
