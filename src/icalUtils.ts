@@ -11,7 +11,7 @@ export function generateICal({
   description: string;
   location: string;
   sDate: string;
-  eDate?: string;
+  eDate: string;
 }) {
   // end date/time strings are constructed below as JS Dates
   const vevent = new ICAL.Component("vevent");
