@@ -3,7 +3,18 @@ import { generateICal } from "./icalUtils";
 import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import { Link } from "@heroui/react";
 
-function getParams() {
+import { useState } from "react";
+import { decryptString, paramsDeserializer } from "./cryptoUtils";
+import type { EventQS } from "./eventForm";
+
+function getShareUnlockState() {
+  const params = new URLSearchParams(window.location.search);
+  const cipher = params.get("h");
+  if (cipher) return { protected: true, cipher };
+  return { protected: false };
+}
+
+function parseStandardParams(): EventQS {
   const params = new URLSearchParams(window.location.search);
   return {
     title: params.get("t") || "",
@@ -12,13 +23,80 @@ function getParams() {
     start: params.get("s") || "",
     end: params.get("e") || "",
     timezone: params.get("tz") || "",
-    online: (params.get("o") || params.get("online") || "0") === "1",
-    allday: (params.get("a") || params.get("allday") || "0") === "1",
+    isOnline: params.get("o") === "1",
+    isAllDay: params.get("a") === "1",
   };
 }
 
 export default function Share() {
-  const event = getParams();
+  const lockState = getShareUnlockState();
+  const [password, setPassword] = useState("");
+  const [unlockError, setUnlockError] = useState("");
+  const [unlocked, setUnlocked] = useState(false);
+  const [protectedEvent, setProtectedEvent] = useState<EventQS | null>(null);
+
+  async function handleUnlock(e: React.FormEvent) {
+    e.preventDefault();
+    setUnlockError("");
+    try {
+      const base = await decryptString(lockState.cipher || "", password);
+      const data = paramsDeserializer(base);
+      // set event metadata exactly as "standard" event
+      setProtectedEvent({
+        title: data.t,
+        description: data.d,
+        location: data.l,
+        start: data.s,
+        end: data.e,
+        timezone: data.tz,
+        isOnline: data.o === "1",
+        isAllDay: data.a === "1",
+      });
+      setUnlocked(true);
+    } catch {
+      setUnlockError("Unlock failed, data format/corruption?");
+    }
+  }
+
+  // If share is protected, show unlock UI
+  if (lockState.protected) {
+    if (!unlocked) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] py-24">
+          <form
+            onSubmit={handleUnlock}
+            className="flex flex-col bg-white border rounded-lg shadow-md p-4 gap-4 w-full max-w-sm"
+          >
+            <div className="font-bold text-lg mb-2">Protected event</div>
+            <div className="text-sm mb-1 text-slate-700">
+              This event is password-protected. Enter password to show event
+              details.
+            </div>
+            <input
+              type="password"
+              autoFocus
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="rounded border px-2 py-2"
+            />
+            {unlockError && (
+              <div className="text-red-600 text-sm">{unlockError}</div>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white font-medium rounded py-2 px-3 hover:bg-blue-700 mt-2"
+            >
+              Unlock Event
+            </button>
+          </form>
+        </div>
+      );
+    }
+    // fall through: show event with details from "event"
+  }
+  // Use unlocked event if set (from protected), else parse from standard URL
+  const event = protectedEvent || parseStandardParams();
 
   // parse start/end in YYYYMMDDTHHMMSSZ
   const parseCalDate = (s: string) => {
@@ -194,7 +272,7 @@ export default function Share() {
                 Location:{" "}
                 <Link
                   href={
-                    event.online
+                    event.isOnline
                       ? event.location
                       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                           event.location
@@ -208,7 +286,7 @@ export default function Share() {
                 </Link>
               </div>
             )}
-            {event.allday ? (
+            {event.isAllDay ? (
               <div className="text-sm text-gray-600">
                 {formatDateOnly(startDt)} <br />
                 to {formatDateOnly(endDt)} (All day)

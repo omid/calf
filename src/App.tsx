@@ -11,15 +11,26 @@ import {
   AutocompleteItem,
   type DateValue,
   Link,
+  Alert,
 } from "@heroui/react";
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
 import {
   ChatBubbleBottomCenterTextIcon,
+  EyeIcon,
+  EyeSlashIcon,
   GlobeAltIcon,
+  LockClosedIcon,
+  LockOpenIcon,
   MapPinIcon,
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
+import CollapsibleSection from "./CollapsibleSection";
+import {
+  extractShareParams,
+  paramsSerializer,
+  encryptString,
+} from "./cryptoUtils";
 import {
   now,
   getLocalTimeZone,
@@ -27,16 +38,7 @@ import {
   CalendarDate,
   fromDate,
 } from "@internationalized/date";
-
-const initialForm = {
-  title: "",
-  description: "",
-  location: "",
-  sDate: "",
-  sTime: "",
-  eDate: "",
-  eTime: "",
-};
+import { initialForm } from "./eventForm";
 
 const isZoned = (v: DateValue | null): v is ZonedDateTime =>
   !!v && "timeZone" in v;
@@ -44,24 +46,43 @@ const isZoned = (v: DateValue | null): v is ZonedDateTime =>
 function App() {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState<"form" | "share">("form");
-  const [isOnline, setIsOnline] = useState(false);
-  const [timezone, setTimezone] = useState(getLocalTimeZone());
   const urlPrefix = import.meta.env.MODE === "production" ? "/calf" : "";
   const origin = window.location.origin;
   // controlled input for Autocomplete so default timezone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
-  const [allDay, setAllDay] = useState(false);
   const [formError, setFormError] = useState("");
+  const [passwordEnabled, setPasswordEnabled] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<NominatimPlace[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [startDate, setStartDate] = useState<
     ZonedDateTime | CalendarDate | null
-  >(now(timezone));
+  >(now(getLocalTimeZone()));
   const [endDate, setEndDate] = useState<ZonedDateTime | CalendarDate | null>(
-    now(timezone).add({ hours: 1 })
+    now(getLocalTimeZone()).add({ hours: 1 })
   );
+  const [shareLink, setShareLink] = useState<string>("");
+  // needed to trigger async share link generation before rendering share step
+  const [pendingShare, setPendingShare] = useState(false);
+  const isSharePage = window.location.pathname === urlPrefix + "/share";
+  const [isPassVisible, setIsPassVisible] = useState(false);
+  const togglePassVisibility = () => setIsPassVisible(!isPassVisible);
+
+  useEffect(() => {
+    const start = now(getLocalTimeZone());
+    const end = start.add({ hours: 1 });
+    setStartDate(start);
+    setEndDate(end);
+    setForm((f) => ({
+      ...f,
+      sDate: start.toDate().toISOString().slice(0, 10),
+      sTime: start.toDate().toISOString().slice(11, 16),
+      eDate: end.toDate().toISOString().slice(0, 10),
+      eTime: end.toDate().toISOString().slice(11, 16),
+      timezone: getLocalTimeZone(),
+    }));
+  }, []);
 
   // debounced search wrapper, memoized to avoid recreation on each render
   const debouncedSearch = useMemo(
@@ -92,7 +113,6 @@ function App() {
     document.addEventListener("click", onDocClick);
     return () => document.removeEventListener("click", onDocClick);
   }, []);
-  const isSharePage = window.location.pathname === urlPrefix + "/share";
 
   // Generate share link with params
   const urlParams = new URLSearchParams();
@@ -111,10 +131,6 @@ function App() {
     const hh = pad(d.getHours());
     const mm = pad(d.getMinutes());
     const ss = pad(d.getSeconds());
-    // const tzMin = -d.getTimezoneOffset(); // minutes east of UTC
-    // const sign = tzMin >= 0 ? "+" : "-";
-    // const tzH = pad(Math.floor(Math.abs(tzMin) / 60));
-    // const tzM = pad(Math.abs(tzMin) % 60);
     return `${y}${m}${day}T${hh}${mm}${ss}Z`;
   };
 
@@ -134,10 +150,10 @@ function App() {
   } catch {
     // ignore
   }
-  urlParams.set("tz", timezone);
-  urlParams.set("o", isOnline ? "1" : "0");
-  urlParams.set("a", allDay ? "1" : "0");
-  const shareLink = `${origin}${urlPrefix}/share?${urlParams.toString()}`;
+  urlParams.set("tz", form.timezone);
+  urlParams.set("o", form.isOnline ? "1" : "0");
+  urlParams.set("a", form.isAllDay ? "1" : "0");
+  // Share link is handled in state above, see below for generation
 
   const FixedLabel = ({ children }: { children: React.ReactNode }) => (
     <span className="inline-block w-20">{children}</span>
@@ -146,7 +162,7 @@ function App() {
   const handleEndChange = (date: ZonedDateTime | CalendarDate | null) => {
     if (!date) return;
     setEndDate(date);
-    const dt = date.toDate(timezone);
+    const dt = date.toDate(form.timezone);
     setForm((f) => ({
       ...f,
       eDate: dt.toISOString().slice(0, 10),
@@ -157,7 +173,7 @@ function App() {
   const handleStartChange = (date: ZonedDateTime | CalendarDate | null) => {
     if (!date) return;
     setStartDate(date);
-    const dt = date.toDate(timezone);
+    const dt = date.toDate(form.timezone);
     setForm((f) => ({
       ...f,
       sDate: dt.toISOString().slice(0, 10),
@@ -170,7 +186,7 @@ function App() {
 
   const handleTimezoneChange = (tz: Key | null) => {
     if (!tz) return;
-    setTimezone(String(tz));
+    setForm((f) => ({ ...f, timezone: String(tz) }));
     if (startDate && isZoned(startDate)) {
       handleStartChange(fromDate(startDate.toDate(), String(tz)));
     }
@@ -241,7 +257,7 @@ function App() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setForm((f) => ({ ...f, location: val }));
-                        if (!isOnline) {
+                        if (!form.isOnline) {
                           debouncedSearch(String(val));
                           setShowSuggestions(true);
                         }
@@ -249,11 +265,11 @@ function App() {
                       startContent={
                         <MapPinIcon className="h-5 w-5 text-gray-500" />
                       }
-                      placeholder={isOnline ? "Meeting Link" : "Location"}
-                      type={isOnline ? "url" : "text"}
-                      required={!isOnline}
+                      placeholder={form.isOnline ? "Meeting Link" : "Location"}
+                      type={form.isOnline ? "url" : "text"}
+                      required={!form.isOnline}
                       onFocus={() => {
-                        if (!isOnline && form.location)
+                        if (!form.isOnline && form.location)
                           setShowSuggestions(true);
                       }}
                     />
@@ -284,21 +300,10 @@ function App() {
 
                   <div className="flex items-center flex-shrink-0 ml-2">
                     <ChipCheckbox
-                      checked={isOnline}
-                      onChange={(eOrVal) => {
-                        const val =
-                          eOrVal &&
-                          (eOrVal as unknown as { target?: unknown }).target
-                            ? Boolean(
-                                (
-                                  eOrVal as unknown as {
-                                    target: HTMLInputElement;
-                                  }
-                                ).target.checked
-                              )
-                            : Boolean(eOrVal);
-                        setIsOnline(val);
-                        if (val) {
+                      checked={form.isOnline}
+                      onValueChange={(isOnline: boolean) => {
+                        setForm((f) => ({ ...f, isOnline }));
+                        if (isOnline) {
                           setSuggestions([]);
                           setShowSuggestions(false);
                         }
@@ -312,9 +317,12 @@ function App() {
                 <div className="flex flex-col xs:flex-row gap-3">
                   <div className="pt-1 flex-1 min-w-25 max-w-25 ">
                     <ChipCheckbox
-                      checked={allDay}
-                      onValueChange={(val: boolean) => {
-                        setAllDay(val);
+                      checked={form.isAllDay}
+                      onValueChange={(isAllDay: boolean) => {
+                        setForm((f) => ({
+                          ...f,
+                          isAllDay,
+                        }));
                       }}
                       text="All day"
                       id="all-day-switch"
@@ -328,7 +336,7 @@ function App() {
                         labelPlacement="outside-left"
                         value={startDate}
                         onChange={handleStartChange}
-                        granularity={allDay ? "day" : "minute"}
+                        granularity={form.isAllDay ? "day" : "minute"}
                       />
                     </div>
 
@@ -338,10 +346,10 @@ function App() {
                         labelPlacement="outside-left"
                         value={endDate}
                         onChange={handleEndChange}
-                        granularity={allDay ? "day" : "minute"}
+                        granularity={form.isAllDay ? "day" : "minute"}
                       />
                     </div>
-                    {!allDay && (
+                    {!form.isAllDay && (
                       <div className="col-start-1">
                         <Autocomplete
                           startContent={
@@ -355,7 +363,7 @@ function App() {
                             (tz) => ({ label: tz, value: tz })
                           )}
                           fullWidth={false}
-                          defaultSelectedKey={timezone}
+                          defaultSelectedKey={form.timezone}
                           onSelectionChange={handleTimezoneChange}
                           isClearable={false}
                         >
@@ -373,6 +381,96 @@ function App() {
                   </div>
                 </div>
 
+                {/* Collapsible section for password protection */}
+                <CollapsibleSection
+                  title={
+                    <span className="text-sm">
+                      Password protection (optional){" "}
+                      {passwordEnabled ? (
+                        <span
+                          title="Enabled"
+                          style={{
+                            color: "green",
+                            fontSize: "1.2em",
+                            marginLeft: 6,
+                          }}
+                        >
+                          <LockClosedIcon className="h-5 w-5 inline" />
+                        </span>
+                      ) : (
+                        <span
+                          title="Disabled"
+                          style={{
+                            color: "#888",
+                            fontSize: "1.2em",
+                            marginLeft: 6,
+                          }}
+                        >
+                          <LockOpenIcon className="h-5 w-5 inline" />
+                        </span>
+                      )}
+                    </span>
+                  }
+                >
+                  <Alert
+                    color="warning"
+                    variant="faded"
+                    title={
+                      <div className="mb-2 font-bold">
+                        Protect your event with a password
+                      </div>
+                    }
+                    className="my-4 text-left"
+                    description={
+                      <div>
+                        If you set a password, your event link will be
+                        encrypted. The event details won't be visible to URL
+                        trackers or third parties.
+                        <br />
+                        Only people with both the link and the password will be
+                        able to open it.
+                      </div>
+                    }
+                  ></Alert>
+
+                  <div className="flex flex-col xs:flex-row gap-3">
+                    <div className="mb-2">
+                      <ChipCheckbox
+                        checked={passwordEnabled}
+                        onValueChange={(val: boolean) =>
+                          setPasswordEnabled(val)
+                        }
+                        text="Enable password"
+                        id="enable-password-switch"
+                      />
+                    </div>
+                    {passwordEnabled && (
+                      <Input
+                        placeholder="Set a password to protect event details"
+                        endContent={
+                          <button
+                            aria-label="toggle password visibility"
+                            className="w-8 h-8 cursor-pointer"
+                            type="button"
+                            onClick={togglePassVisibility}
+                          >
+                            {isPassVisible ? (
+                              <EyeSlashIcon className="text-2xl text-default-400 pointer-events-none" />
+                            ) : (
+                              <EyeIcon className="text-2xl text-default-400 pointer-events-none" />
+                            )}
+                          </button>
+                        }
+                        type={isPassVisible ? "text" : "password"}
+                        value={form.password}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, password: e.target.value }))
+                        }
+                      />
+                    )}
+                  </div>
+                </CollapsibleSection>
+
                 {formError && (
                   <div className="text-sm text-red-600">{formError}</div>
                 )}
@@ -381,7 +479,7 @@ function App() {
                   color="primary"
                   size="lg"
                   className="font-bold"
-                  onPress={() => {
+                  onPress={async () => {
                     // validate required fields: title, sDate, endDate
                     if (!form.title.trim() || !form.sDate || !form.eDate) {
                       setFormError(
@@ -405,7 +503,33 @@ function App() {
                       return;
                     }
                     setFormError("");
-                    setStep("share");
+                    // Compose event params for share link:
+                    const params = extractShareParams(form);
+                    // If password, use HMAC; else, normal query params.
+                    if (passwordEnabled && form.password) {
+                      setPendingShare(true);
+                      try {
+                        const serializedParams = paramsSerializer(params);
+                        const cipher = await encryptString(
+                          serializedParams,
+                          form.password
+                        );
+                        setShareLink(
+                          `${origin}${urlPrefix}/share?h=${encodeURIComponent(
+                            cipher
+                          )}`
+                        );
+                      } finally {
+                        setPendingShare(false);
+                        setStep("share");
+                      }
+                    } else {
+                      const urlParams = new URLSearchParams(params);
+                      setShareLink(
+                        `${origin}${urlPrefix}/share?${urlParams.toString()}`
+                      );
+                      setStep("share");
+                    }
                   }}
                   title="Share Event"
                 >
@@ -416,15 +540,21 @@ function App() {
             {step === "share" && (
               <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4 items-center">
                 <div className="font-semibold">Share this link:</div>
-                <a
-                  href={shareLink}
-                  className="text-blue-600 underline break-all"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {shareLink}
-                </a>
-                <ReactQRCode value={shareLink} size={128} />
+                {pendingShare ? (
+                  <div>Generating secure link...</div>
+                ) : (
+                  <>
+                    <a
+                      href={shareLink}
+                      className="text-blue-600 underline break-all"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {shareLink}
+                    </a>
+                    <ReactQRCode value={shareLink} size={128} />
+                  </>
+                )}
                 <Button
                   className="mt-4 bg-gray-200 px-4 py-2 rounded"
                   onPress={() => setStep("form")}
