@@ -28,10 +28,10 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        run: yarn
 
       - name: Build
-        run: npm run build
+        run: yarn build
 
       - name: SPA fallback (404.html)
         run: cp dist/index.html dist/404.html
