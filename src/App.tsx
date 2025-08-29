@@ -179,6 +179,8 @@ function App() {
     }
   };
 
+  const iframeSrc = `counter.html?path=${isSharePage ? "/share" : "/"}`;
+
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
       <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-900 flex flex-col items-center p-2 sm:p-4">
@@ -437,6 +439,7 @@ function App() {
         </Button>
       </footer>
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <iframe src={iframeSrc} height="60" width="200"></iframe>
     </div>
   );
 }

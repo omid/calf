@@ -18,8 +18,8 @@ Suitable to share an event on social media posts or emails.
 [![Live – GitHub Pages](https://img.shields.io/badge/live-calf%20on%20gh%20pages-4caf50.svg)](https://omid.github.io/calf/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
-**Live app:** <https://omid.github.io/calf/>  
-**Donate:** <https://github.com/sponsors/omid>
+**Live app:** <https://omid.github.io/calf/>\
+**Donate:** <https://github.com/sponsors/omid>\
 **Actions status:** [Deploy workflow](https://github.com/omid/calf/actions/workflows/deploy.yml)
 
 ---
@@ -35,7 +35,7 @@ Suitable to share an event on social media posts or emails.
 
 #### ⚠️ Disclaimer
 
-- GitHub may track created links. Links you generate and share via GitHub Pages could be logged or appear in GitHub analytics/traffic data.
+- GitHub may track created links. Links you generate and share via GitHub Pages could be logged or appear in GitHub analytics/traffic data. Also, we use openstreetmaps.com for autocomplete and goatcounter.com as visit counter.
 - Updates may break older links. I’ll try to maintain backward compatibility, but breaking changes can happen between versions.
 
 ---

@@ -98,6 +98,17 @@ export default function AboutModal({
                 When searching for places, the app may query a geocoding service
                 (e.g., OpenStreetMap’s Nominatim) to fetch suggestions.
               </li>
+              <li>
+                GoatCounter is used as a privacy-friendly visit counter. No
+                personal data is collected.
+              </li>
+              <li>
+                No cookies or local storage are used. The app does not track or
+                store any personal information.
+              </li>
+              <li>
+                The source code is open and available for review on GitHub.
+              </li>
             </ul>
           </div>
 
