@@ -1,6 +1,12 @@
 <div align="center"><img src="public/assets/logo.avif"/></div>
 
-<h1 align="center">Calf (Calendar Factory)</h1>
+<div id="toc" align="center">
+  <ul style="list-style: none;">
+    <summary>
+      <h1>Calf (Calendar Factory)</h1>
+    </summary>
+  </ul>
+</div>
 
 <div align="center">Create calendar events and share them easily</div>
 
@@ -14,13 +20,12 @@ Suitable to share an event on social media posts or emails.
 
 ---
 
-[![Deploy to GitHub Pages](https://github.com/omid/calf/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/omid/calf/actions/workflows/deploy.yml)
-[![Live – GitHub Pages](https://img.shields.io/badge/live-calf%20on%20gh%20pages-4caf50.svg)](https://omid.github.io/calf/)
+[![Deploy](https://github.com/omid/calf/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/omid/calf/actions/workflows/deploy.yml)
+[![Live](https://img.shields.io/badge/live-calf%20on%20gh%20pages-4caf50.svg)](https://omid.github.io/calf/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
 **Live app:** <https://omid.github.io/calf/>\
-**Donate:** <https://github.com/sponsors/omid>\
-**Actions status:** [Deploy workflow](https://github.com/omid/calf/actions/workflows/deploy.yml)
+**Donate:** <https://github.com/sponsors/omid>
 
 ---
 
@@ -48,4 +53,4 @@ Issues and PRs are welcome. For UI changes, include a screenshot or short clip.
 
 #### 📜 License
 
-MIT — see LICENSE
+MIT — see [LICENSE](LICENSE)
