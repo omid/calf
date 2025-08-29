@@ -184,7 +184,7 @@ function App() {
     <div className="flex flex-col items-center sm:p-2 p-0">
       <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-900 flex flex-col items-center p-2 sm:p-4">
         <img
-          src="assets/logo.png"
+          src="assets/logo.avif"
           className="h-20 sm:h-28 md:h-30 mb-2"
           alt="Calf"
         />

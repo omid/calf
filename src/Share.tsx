@@ -252,7 +252,7 @@ export default function Share() {
             aria-label="Add to Google Calendar"
           >
             <img
-              src="assets/google-calendar.png"
+              src="assets/google-calendar.avif"
               alt="Google Calendar"
               className="w-5 h-5"
             />
@@ -266,7 +266,7 @@ export default function Share() {
             className={btn}
             aria-label="Add to Outlook"
           >
-            <img src="assets/outlook.png" alt="Outlook" className="w-5 h-5" />
+            <img src="assets/outlook.avif" alt="Outlook" className="w-5 h-5" />
             Outlook (Live)
           </Link>
 
@@ -277,7 +277,7 @@ export default function Share() {
             aria-label="Add to Apple Calendar"
             type="text/calendar"
           >
-            <img src="assets/apple.png" alt="Apple" className="w-5 h-5" />
+            <img src="assets/apple.avif" alt="Apple" className="w-5 h-5" />
             Apple Calendar
           </Link>
 
@@ -288,7 +288,11 @@ export default function Share() {
             className={btn}
             aria-label="Add to Office 365"
           >
-            <img src="assets/office.png" alt="Office 365" className="w-5 h-5" />
+            <img
+              src="assets/office.avif"
+              alt="Office 365"
+              className="w-5 h-5"
+            />
             Office 365
           </Link>
 
@@ -299,7 +303,7 @@ export default function Share() {
             className={btn}
             aria-label="Add to Yahoo Calendar"
           >
-            <img src="assets/yahoo.png" alt="Yahoo" className="w-5 h-5" />
+            <img src="assets/yahoo.avif" alt="Yahoo" className="w-5 h-5" />
             Yahoo Calendar
           </Link>
 

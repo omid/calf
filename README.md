@@ -1,4 +1,4 @@
-<div align="center"><img src="src/assets/logo.png"/></div>
+<div align="center"><img src="public/assets/logo.avif"/></div>
 
 <h1 align="center">Calf (Calendar Factory)</h1>
 
