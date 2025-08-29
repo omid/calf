@@ -74,10 +74,8 @@ function App() {
     setEndDate(end);
     setForm((f) => ({
       ...f,
-      sDate: start.toDate().toISOString().slice(0, 10),
-      sTime: start.toDate().toISOString().slice(11, 16),
-      eDate: end.toDate().toISOString().slice(0, 10),
-      eTime: end.toDate().toISOString().slice(11, 16),
+      sDate: start.toDate().toISOString(),
+      eDate: end.toDate().toISOString(),
       timezone: getLocalTimeZone(),
     }));
   }, []);
@@ -133,16 +131,14 @@ function App() {
   };
 
   try {
-    const startDt = new Date(`${form.sDate}T${form.sTime || "00"}:00`);
+    const startDt = new Date(form.sDate);
     const startParam = formatWithOffset(startDt);
     urlParams.set("s", startParam);
   } catch {
     // ignore
   }
   try {
-    const endDt = new Date(
-      `${form.eDate || form.sDate}T${form.eTime || form.sTime || "00"}:00`
-    );
+    const endDt = new Date(form.eDate || form.sDate);
     const endParam = formatWithOffset(endDt);
     urlParams.set("e", endParam);
   } catch {
@@ -163,8 +159,7 @@ function App() {
     const dt = date.toDate(form.timezone);
     setForm((f) => ({
       ...f,
-      eDate: dt.toISOString().slice(0, 10),
-      eTime: !isNaN(dt.getTime()) ? dt.toISOString().slice(11, 16) : "",
+      eDate: dt.toISOString(),
     }));
   };
 
@@ -174,8 +169,7 @@ function App() {
     const dt = date.toDate(form.timezone);
     setForm((f) => ({
       ...f,
-      sDate: dt.toISOString().slice(0, 10),
-      sTime: !isNaN(dt.getTime()) ? dt.toISOString().slice(11, 16) : "",
+      sDate: dt.toISOString(),
     }));
     if (date && !endDate) {
       setEndDate(date.add({ hours: 1 }));
@@ -486,10 +480,8 @@ function App() {
                       return;
                     }
                     // validate start < end
-                    const startIso = `${form.sDate}T${form.sTime || "00"}:00`;
-                    const endIso = `${form.eDate}T${form.eTime || "00"}:00`;
-                    const startDt = new Date(startIso);
-                    const endDt = new Date(endIso);
+                    const startDt = new Date(form.sDate);
+                    const endDt = new Date(form.eDate);
                     if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) {
                       setFormError("Invalid start or end date/time.");
                       return;

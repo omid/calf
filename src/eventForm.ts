@@ -5,9 +5,7 @@ export type EventForm = {
   description: string;
   location: string;
   sDate: string;
-  sTime: string;
   eDate: string;
-  eTime: string;
   timezone: string;
   isOnline: boolean;
   isAllDay: boolean;
@@ -30,9 +28,7 @@ export const initialForm: EventForm = {
   description: "",
   location: "",
   sDate: "",
-  sTime: "",
   eDate: "",
-  eTime: "",
   timezone: getLocalTimeZone(),
   isOnline: false,
   isAllDay: false,

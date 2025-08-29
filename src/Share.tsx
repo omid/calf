@@ -98,35 +98,10 @@ export default function Share() {
   // Use unlocked event if set (from protected), else parse from standard URL
   const event = protectedEvent || parseStandardParams();
 
-  // parse start/end in YYYYMMDDTHHMMSSZ
-  const parseCalDate = (s: string) => {
-    if (!s) return null;
-    const m = s.match(
-      /^([0-9]{4})([0-9]{2})([0-9]{2})T([0-9]{2})([0-9]{2})([0-9]{2})(Z|([+-][0-9]{4}))$/
-    );
-    if (!m) return null;
-    const [, y, mo, d, hh, mm, ss, tz] = m as unknown as string[];
-    const utcMillis = Date.UTC(
-      Number(y),
-      Number(mo) - 1,
-      Number(d),
-      Number(hh),
-      Number(mm),
-      Number(ss)
-    );
-    if (tz === "Z") {
-      return new Date(utcMillis);
-    }
-    const sign = tz[0] === "+" ? 1 : -1;
-    const tzH = Number(tz.slice(1, 3));
-    const tzM = Number(tz.slice(3, 5));
-    const offsetMinutes = sign * (tzH * 60 + tzM);
-    return new Date(utcMillis - offsetMinutes * 60 * 1000);
-  };
-
-  const startDt = parseCalDate(event.start) || new Date();
-  const endDt =
-    parseCalDate(event.end) || new Date(startDt.getTime() + 60 * 60 * 1000);
+  const startDt = new Date(event.start);
+  const endDt = event.end
+    ? new Date(event.end)
+    : new Date(startDt.getTime() + 60 * 60 * 1000);
 
   const tzDisplay = (() => {
     if (event.timezone) return event.timezone;
@@ -189,18 +164,14 @@ export default function Share() {
     description: string;
     location: string;
     sDate: string;
-    sTime: string;
     eDate: string;
-    eTime: string;
     timezone?: string;
   } = {
     title: event.title,
     description: event.description ?? "",
     location: event.location ?? "",
-    sDate: startDt.toISOString().slice(0, 10),
-    sTime: startDt.toISOString().slice(11, 19).slice(0, 5),
-    eDate: endDt.toISOString().slice(0, 10),
-    eTime: endDt.toISOString().slice(11, 19).slice(0, 5),
+    sDate: startDt.toISOString(),
+    eDate: endDt.toISOString(),
     timezone: event.timezone || undefined,
   };
 

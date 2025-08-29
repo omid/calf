@@ -5,17 +5,13 @@ export function generateICal({
   description,
   location,
   sDate,
-  sTime,
   eDate,
-  eTime,
 }: {
   title: string;
   description: string;
   location: string;
   sDate: string;
-  sTime: string;
   eDate?: string;
-  eTime?: string;
 }) {
   // end date/time strings are constructed below as JS Dates
   const vevent = new ICAL.Component("vevent");
@@ -24,10 +20,8 @@ export function generateICal({
   vevent.addPropertyWithValue("location", location);
 
   // Build JS Date objects from provided date/time and convert to ICAL.Time
-  const startIso = `${sDate}T${sTime}:00Z`;
-  const endIso = eDate && eTime ? `${eDate}T${eTime}:00Z` : undefined;
-  const startDate = new Date(startIso);
-  const endDate = endIso ? new Date(endIso) : undefined;
+  const startDate = new Date(sDate);
+  const endDate = new Date(eDate);
 
   const tStart = ICAL.Time.fromJSDate(startDate);
   const tEnd = endDate ? ICAL.Time.fromJSDate(endDate) : undefined;
