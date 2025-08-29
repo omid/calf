@@ -22,7 +22,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   return (
     <div className={`rounded border border-gray-200 bg-white ${className}`}>
       <button
-        className="flex items-center w-full px-4 py-3 text-lg font-semibold text-left hover:bg-gray-50 focus:outline-none transition"
+        className="cursor-pointer flex items-center w-full px-4 py-3 text-lg font-semibold text-left hover:bg-gray-50 focus:outline-none transition"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
         type="button"
