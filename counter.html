@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <title>Counter</title>
+    <script>
+        const query = window.location.search;
+        const params = new URLSearchParams(query);
+        const path = params.get("path") || "/";
+        window.goatcounter = {
+            allow_frame: true,
+            path
+        };
+    </script>
+</head>
+
+<body style="padding: 0; margin: 0; background-color:#242424;">
+    <script data-goatcounter="https://calf.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <script>
+        var t = setInterval(function () {
+            if (window.goatcounter && window.goatcounter.visit_count) {
+                clearInterval(t)
+                window.goatcounter.visit_count({
+                    "no_branding": true,
+                    path,
+                    style: `body{background-color:#242424;padding-top: 10px} div{border:0; background-color:#242424; color:#555; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;}`
+                });
+            }
+        }, 200)
+    </script>
+</body>
+
+</html>
