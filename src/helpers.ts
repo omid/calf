@@ -113,24 +113,25 @@ export async function decryptString(
 }
 
 // Extract share-relevant params from EventForm
-export function extractShareParams(form: EventForm): Record<string, string> {
-  // Be sure to keep in sync with App/share logic
-  return {
-    t: form.title || "",
-    d: form.description || "",
-    l: form.location || "",
+export function formToRecord(form: EventForm): Record<string, string> {
+  const obj: Record<string, string> = {
+    t: form.title ?? "",
+    d: form.description ?? "",
+    l: form.location ?? "",
     s: form.sDate && form.sTime ? `${form.sDate}T${form.sTime}:00` : "",
     e: form.eDate && form.eTime ? `${form.eDate}T${form.eTime}:00` : "",
-    tz: form.timezone || "",
-    o: form.isOnline ? "1" : "0",
-    a: form.isAllDay ? "1" : "0",
-    // do not include password itself
+    tz: form.timezone ?? "",
+    o: form.isOnline ? "1" : "",
+    a: form.isAllDay ? "1" : "",
   };
+
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== ""));
 }
 
 export function paramsSerializer(params: Record<string, string>): string {
   return Object.keys(params)
     .sort()
+    .filter((k) => params[k] !== undefined && params[k] !== "")
     .map(
       (k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k] ?? "")}`
     )

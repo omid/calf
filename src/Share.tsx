@@ -4,7 +4,7 @@ import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import { Link } from "@heroui/react";
 
 import { useState } from "react";
-import { decryptString, paramsDeserializer } from "./cryptoUtils";
+import { decryptString, paramsDeserializer } from "./helpers";
 import type { EventQS } from "./eventForm";
 
 function getShareUnlockState() {
@@ -190,17 +190,17 @@ export default function Share() {
     location: string;
     sDate: string;
     sTime: string;
-    eDate?: string;
-    eTime?: string;
+    eDate: string;
+    eTime: string;
     timezone?: string;
   } = {
     title: event.title,
-    description: event.description,
-    location: event.location,
+    description: event.description ?? "",
+    location: event.location ?? "",
     sDate: startDt.toISOString().slice(0, 10),
     sTime: startDt.toISOString().slice(11, 19).slice(0, 5),
-    eDate: endDt ? endDt.toISOString().slice(0, 10) : undefined,
-    eTime: endDt ? endDt.toISOString().slice(11, 19).slice(0, 5) : undefined,
+    eDate: endDt.toISOString().slice(0, 10),
+    eTime: endDt.toISOString().slice(11, 19).slice(0, 5),
     timezone: event.timezone || undefined,
   };
 

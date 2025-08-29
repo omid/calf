@@ -26,11 +26,7 @@ import {
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
 import CollapsibleSection from "./CollapsibleSection";
-import {
-  extractShareParams,
-  paramsSerializer,
-  encryptString,
-} from "./cryptoUtils";
+import { formToRecord, paramsSerializer, encryptString } from "./helpers";
 import {
   now,
   getLocalTimeZone,
@@ -42,6 +38,8 @@ import { initialForm } from "./eventForm";
 
 const isZoned = (v: DateValue | null): v is ZonedDateTime =>
   !!v && "timeZone" in v;
+
+const sharePath = "/share";
 
 function App() {
   const [form, setForm] = useState(initialForm);
@@ -65,7 +63,7 @@ function App() {
   const [shareLink, setShareLink] = useState<string>("");
   // needed to trigger async share link generation before rendering share step
   const [pendingShare, setPendingShare] = useState(false);
-  const isSharePage = window.location.pathname === urlPrefix + "/share";
+  const isSharePage = window.location.pathname === urlPrefix + sharePath;
   const [isPassVisible, setIsPassVisible] = useState(false);
   const togglePassVisibility = () => setIsPassVisible(!isPassVisible);
 
@@ -195,7 +193,7 @@ function App() {
     }
   };
 
-  const iframeSrc = `counter.html?path=${isSharePage ? "/share" : "/"}`;
+  const iframeSrc = `counter.html?path=${isSharePage ? sharePath : "/"}`;
 
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
@@ -504,8 +502,7 @@ function App() {
                     }
                     setFormError("");
                     // Compose event params for share link:
-                    const params = extractShareParams(form);
-                    // If password, use HMAC; else, normal query params.
+                    const params = formToRecord(form);
                     if (passwordEnabled && form.password) {
                       setPendingShare(true);
                       try {
@@ -515,7 +512,7 @@ function App() {
                           form.password
                         );
                         setShareLink(
-                          `${origin}${urlPrefix}/share?h=${encodeURIComponent(
+                          `${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(
                             cipher
                           )}`
                         );
@@ -526,7 +523,7 @@ function App() {
                     } else {
                       const urlParams = new URLSearchParams(params);
                       setShareLink(
-                        `${origin}${urlPrefix}/share?${urlParams.toString()}`
+                        `${origin}${urlPrefix}${sharePath}?${urlParams.toString()}`
                       );
                       setStep("share");
                     }
