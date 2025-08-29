@@ -179,7 +179,7 @@ export default function Share() {
       <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
         <div className="border border-gray-200 shadow-lg rounded p-4 flex flex-row gap-5">
           <div className="hidden xs:block">
-            <CalendarDaysIcon className="w-40 h-40 text-gray-700" />
+            <CalendarDaysIcon className="w-35 h-35 text-gray-600" />
           </div>
           <div className="flex flex-col gap-2 justify-start text-left align-middle ">
             <div className="flex flex-row items-center gap-3">

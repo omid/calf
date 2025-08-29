@@ -10,6 +10,7 @@ import {
   Autocomplete,
   AutocompleteItem,
   type DateValue,
+  Link,
 } from "@heroui/react";
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
@@ -182,15 +183,17 @@ function App() {
 
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
-      <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-900 flex flex-col items-center p-2 sm:p-4">
+      <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-800 flex flex-col items-center p-2 sm:p-4">
         <img
           src="assets/logo.avif"
           className="h-20 sm:h-28 md:h-30 mb-2"
           alt="Calf"
         />
-        <div className="text-2xl sm:text-3xl font-bold mb-1">
-          Calf (Calendar Factory)
-        </div>
+        <Link href={urlPrefix} className="hover:underline text-gray-800">
+          <div className="text-2xl sm:text-3xl font-bold mb-1">
+            Calf (Calendar Factory)
+          </div>
+        </Link>
         <div className="mb-2 text-md sm:text-lg font-semibold">
           Create calendar events and share them easily!
         </div>
@@ -260,7 +263,7 @@ function App() {
                         {suggestions.map((s) => (
                           <li
                             key={s.place_id}
-                            className="px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 cursor-pointer text-left"
+                            className="px-3 py-2 text-sm text-gray-800 hover:bg-gray-50 cursor-pointer text-left"
                             onMouseDown={(e) => {
                               // prevent blur before click
                               e.preventDefault();
@@ -359,7 +362,7 @@ function App() {
                           {Intl.supportedValuesOf("timeZone").map((tz) => (
                             <AutocompleteItem
                               key={tz}
-                              className="text-gray-900 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
+                              className="text-gray-800 bg-white hover:bg-gray-50 px-3 py-2 text-sm"
                             >
                               {tz}
                             </AutocompleteItem>
