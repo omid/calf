@@ -1,9 +1,3 @@
-// Lightweight Nominatim helper for place autocomplete (OpenStreetMap)
-// - Uses the public Nominatim API for client-side autocomplete
-// - Includes simple in-memory cache and debounced query helper
-// - NOTE: Public Nominatim has strict rate limits and forbids heavy production use.
-//   For production, self-host Nominatim or use a hosted OSM provider.
-
 export type NominatimPlace = {
   place_id: string;
   display_name: string;
@@ -32,9 +26,8 @@ export async function searchPlaces(
 
   const resp = await fetch(url.toString(), {
     headers: {
-      // Identify the application per Nominatim usage policy
       "Accept-Language": "en",
-      // It's recommended to set a valid Referer or User-Agent from your app
+      "User-Agent": "calf (https://github.com/omid/calf)",
     },
   });
 
@@ -59,11 +52,7 @@ export async function searchPlaces(
   return places;
 }
 
-// Simple debounce helper
-export function debounce<T extends (...args: unknown[]) => unknown>(
-  fn: T,
-  wait = 300
-) {
+export function debounce<T extends (...args: unknown[]) => unknown>(fn: T) {
   let timer: ReturnType<typeof setTimeout> | null = null;
   return (...args: Parameters<T>): Promise<unknown> =>
     new Promise<unknown>((resolve, reject) => {
@@ -71,6 +60,6 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
       timer = setTimeout(() => {
         timer = null;
         Promise.resolve(fn(...args)).then(resolve, reject);
-      }, wait);
+      }, 600);
     });
 }

@@ -95,7 +95,7 @@ function App() {
         } catch {
           setSuggestions([]);
         }
-      }, 600),
+      }),
     []
   );
 
@@ -564,7 +564,7 @@ function App() {
         </Button>
       </footer>
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
-      <iframe src={iframeSrc} height="60" width="200"></iframe>
+      <iframe src={iframeSrc} height="0" width="0"></iframe>
     </div>
   );
 }

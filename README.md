@@ -35,19 +35,22 @@ Suitable to share an event on social media posts or emails.
 - One-click buttons for Google, Outlook (Live), Apple, Office 365, Yahoo, and raw **.ics**.
 - Works entirely in the browser — no backend, nothing stored server-side, no tracking (from my side).
 - iCal file is generated locally.
+- Password-protected events (Optional).
+- No tracking, no analytics, no ads.
+- Shareable QR code.
 
 ---
 
 #### ⚠️ Disclaimer
 
-- GitHub may track created links. Links you generate and share via GitHub Pages could be logged or appear in GitHub analytics/traffic data. Also, we use openstreetmaps.com for autocomplete and goatcounter.com as visit counter.
+- GitHub may track created links. Links you generate and share via GitHub Pages could be logged or appear in GitHub analytics/traffic data. Also, we use openstreetmap.org for autocomplete and goatcounter.com as visit counter.
 - Updates may break older links. I’ll try to maintain backward compatibility, but breaking changes can happen between versions.
 
 ---
 
 #### 🤝 Contributing
 
-Issues and PRs are welcome. For UI changes, include a screenshot or short clip.
+Issues and PRs are welcome.
 
 ---
 

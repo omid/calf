@@ -7,3 +7,4 @@ check:
 	@depcheck || true
 	@yarn audit || true
 	@madge --circular --extensions ts,tsx ./ || true
+	@yarn build
