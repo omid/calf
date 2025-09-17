@@ -45,6 +45,7 @@ Suitable to share an event on social media posts or emails.
 
 - GitHub may track created links. Links you generate and share via GitHub Pages could be logged or appear in GitHub analytics/traffic data. Also, we use openstreetmap.org for autocomplete and goatcounter.com as visit counter.
 - Updates may break older links. I’ll try to maintain backward compatibility, but breaking changes can happen between versions.
+- Base of the code is developed with the help of AI. So you would probably see a lot of pollutions and awful code structure!
 
 ---
 

@@ -2,9 +2,8 @@ import ReactQRCode from "react-qr-code";
 import { generateICal } from "./icalUtils";
 import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import { Link } from "@heroui/react";
-
 import { useState } from "react";
-import { decryptString, paramsDeserializer } from "./helpers";
+import { dateFromParts, decryptString, paramsDeserializer } from "./helpers";
 import type { EventQS } from "./eventForm";
 
 function getShareUnlockState() {
@@ -20,11 +19,13 @@ function parseStandardParams(): EventQS {
     title: params.get("t") || "",
     description: params.get("d") || "",
     location: params.get("l") || "",
-    start: params.get("s") || "",
-    end: params.get("e") || "",
+    sDate: params.get("sd") || "",
+    sTime: params.get("st") || "",
+    eDate: params.get("ed") || "",
+    eTime: params.get("et") || "",
     timezone: params.get("tz") || "",
-    isOnline: params.get("o") === "1",
-    isAllDay: params.get("a") === "1",
+    isOnline: typeof params.get("o") === "string",
+    isAllDay: typeof params.get("a") === "string",
   };
 }
 
@@ -46,8 +47,10 @@ export default function Share() {
         title: data.t,
         description: data.d,
         location: data.l,
-        start: data.s,
-        end: data.e,
+        sDate: data.sd,
+        sTime: data.st,
+        eDate: data.ed,
+        eTime: data.et,
         timezone: data.tz,
         isOnline: data.o === "1",
         isAllDay: data.a === "1",
@@ -98,10 +101,12 @@ export default function Share() {
   // Use unlocked event if set (from protected), else parse from standard URL
   const event = protectedEvent || parseStandardParams();
 
-  const startDt = new Date(event.start);
-  const endDt = event.end
-    ? new Date(event.end)
-    : new Date(startDt.getTime() + 60 * 60 * 1000);
+  const startDt = dateFromParts(event.sDate, event.sTime, event.timezone);
+  const endDt = dateFromParts(
+    event.eDate || event.sDate,
+    event.eTime || event.sTime,
+    event.timezone
+  );
 
   const tzDisplay = (() => {
     if (event.timezone) return event.timezone;
@@ -159,62 +164,35 @@ export default function Share() {
     }
   };
 
-  const icalEvent: {
-    title: string;
-    description: string;
-    location: string;
-    sDate: string;
-    eDate: string;
-    timezone?: string;
-  } = {
-    title: event.title,
-    description: event.description ?? "",
-    location: event.location ?? "",
-    sDate: startDt.toISOString(),
-    eDate: endDt.toISOString(),
-    timezone: event.timezone || undefined,
-  };
+  const ical = generateICal(event);
 
-  const ical = generateICal(icalEvent);
   const icalBlob = new Blob([ical], { type: "text/calendar" });
   const icalUrl = URL.createObjectURL(icalBlob);
   const shareLink = window.location.href;
 
-  const toCalDate = (d: Date) =>
-    d
-      .toISOString()
-      .replace(/[-:]/g, "")
-      .replace(/\.\d{3}/, "");
-  const startStr = toCalDate(startDt);
-  const endStr = toCalDate(endDt);
-  const details = event.description
-    ? encodeURIComponent(event.description)
-    : "";
-  const endIsoString = endDt.toISOString();
+  const sanitizeDate = (d: string) =>
+    d.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const startStr = event.isAllDay ? event.sDate : startDt.toISOString();
+  const endStr = event.isAllDay ? event.eDate : endDt.toISOString();
+  const details = encodeURIComponent(event.description);
+  const title = encodeURIComponent(event.title);
+  const location = encodeURIComponent(event.location);
 
-  const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-    event.title
-  )}&details=${details}&location=${encodeURIComponent(
-    event.location
-  )}&dates=${startStr}/${endStr}`;
+  const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${sanitizeDate(
+    startStr
+  )}/${Number(sanitizeDate(endStr)) + 1}`;
 
-  const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
-    event.title
-  )}&body=${details}&location=${encodeURIComponent(
-    event.location
-  )}&startdt=${startDt.toISOString()}&enddt=${endIsoString}`;
+  const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
+    event.isAllDay ? "&allday=true" : ""
+  }`;
 
-  const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(
-    event.title
-  )}&body=${details}&location=${encodeURIComponent(
-    event.location
-  )}&startdt=${startDt.toISOString()}&enddt=${endIsoString}`;
+  const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
+    event.isAllDay ? "&allday=true" : ""
+  }`;
 
-  const yahooLink = `https://calendar.yahoo.com/?v=60&title=${encodeURIComponent(
-    event.title
-  )}&st=${startStr}&et=${endStr}&desc=${details}&in_loc=${encodeURIComponent(
-    event.location
-  )}`;
+  const yahooLink = `https://calendar.yahoo.com/?v=60&title=${title}&st=${startStr}&et=${endStr}&desc=${details}&in_loc=${location}&dur=${
+    event.isAllDay ? "allday" : ""
+  }`;
 
   // Apple Calendar: open the ICS (do not force download) so the OS can hand it to Calendar
   const appleLink = icalUrl; // keep as blob; omit `download` attr on the anchor
@@ -228,7 +206,7 @@ export default function Share() {
       <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
         <div className="border border-gray-200 shadow-lg rounded p-4 flex flex-row gap-5">
           <div className="hidden xs:block">
-            <CalendarDaysIcon className="w-35 h-35 text-gray-600" />
+            <CalendarDaysIcon className="w-35 h-35 text-gray-500" />
           </div>
           <div className="flex flex-col gap-2 justify-start text-left align-middle ">
             <div className="flex flex-row items-center gap-3">
@@ -272,7 +250,7 @@ export default function Share() {
                   {formatInTime(endDt, event.timezone)}
                 </div>
                 <div className="text-sm text-gray-600">
-                  Timezone: {tzDisplay}
+                  Time Zone: {tzDisplay}
                 </div>
               </>
             ) : (
@@ -284,7 +262,7 @@ export default function Share() {
                   End: {formatInTimezone(endDt, event.timezone)}
                 </div>
                 <div className="text-sm text-gray-600">
-                  Timezone: {tzDisplay}
+                  Time Zone: {tzDisplay}
                 </div>
               </>
             )}

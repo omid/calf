@@ -10,6 +10,7 @@ type Props = {
   username?: string;
   repo?: string;
   donateUrl?: string;
+  reportBugUrl?: string;
 };
 
 export default function AboutModal({
@@ -18,6 +19,7 @@ export default function AboutModal({
   username = "omid",
   repo = "calf",
   donateUrl = "https://github.com/sponsors/omid",
+  reportBugUrl = "https://github.com/omid/calf/issues",
 }: Props) {
   if (!isOpen) return null;
 
@@ -84,6 +86,17 @@ export default function AboutModal({
                   {donateUrl}
                 </a>
               </li>
+              <li>
+                Bugs:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={donateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {reportBugUrl}
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -145,7 +158,7 @@ export default function AboutModal({
             className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-800"
           >
             View on GitHub
-            <ArrowTopRightOnSquareIcon className="ml-2 inline h-5 w-5" />
+            <ArrowTopRightOnSquareIcon className="ml-2 inline text-gray-400 h-5 w-5" />
           </a>
         </div>
       </div>

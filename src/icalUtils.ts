@@ -1,30 +1,16 @@
 import ICAL from "ical.js";
+import type { EventQS } from "./eventForm";
+import { icalDateFromParts } from "./helpers";
 
-export function generateICal({
-  title,
-  description,
-  location,
-  sDate,
-  eDate,
-}: {
-  title: string;
-  description: string;
-  location: string;
-  sDate: string;
-  eDate: string;
-}) {
+export function generateICal(event: EventQS) {
   // end date/time strings are constructed below as JS Dates
   const vevent = new ICAL.Component("vevent");
-  vevent.addPropertyWithValue("summary", title);
-  vevent.addPropertyWithValue("description", description);
-  vevent.addPropertyWithValue("location", location);
+  vevent.addPropertyWithValue("summary", event.title);
+  vevent.addPropertyWithValue("description", event.description);
+  vevent.addPropertyWithValue("location", event.location);
 
-  // Build JS Date objects from provided date/time and convert to ICAL.Time
-  const startDate = new Date(sDate);
-  const endDate = new Date(eDate);
-
-  const tStart = ICAL.Time.fromJSDate(startDate);
-  const tEnd = endDate ? ICAL.Time.fromJSDate(endDate) : undefined;
+  const tStart = icalDateFromParts(event.sDate, event.sTime, event.timezone);
+  const tEnd = icalDateFromParts(event.eDate, event.eTime, event.timezone);
 
   // Attach dtstart/dtend as ICAL.Time objects
   vevent.addPropertyWithValue("dtstart", tStart);

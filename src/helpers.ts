@@ -1,4 +1,5 @@
 import type { EventForm } from "./eventForm";
+import ICAL from "ical.js";
 
 const te = new TextEncoder();
 const td = new TextDecoder();
@@ -113,25 +114,33 @@ export async function decryptString(
 }
 
 // Extract share-relevant params from EventForm
-export function formToRecord(form: EventForm): Record<string, string> {
-  const obj: Record<string, string> = {
-    t: form.title ?? "",
-    d: form.description ?? "",
-    l: form.location ?? "",
-    s: form.sDate ?? "",
-    e: form.eDate ?? "",
-    tz: form.timezone ?? "",
-    o: form.isOnline ? "1" : "",
-    a: form.isAllDay ? "1" : "",
+export function formToRecord(
+  form: EventForm
+): Record<string, string | undefined> {
+  const obj = {
+    t: form.title,
+    d: form.description || undefined,
+    l: form.location || undefined,
+    sd: form.sDate?.toString(),
+    st: form.isAllDay ? undefined : form.sTime || undefined,
+    ed: form.eDate?.toString(),
+    et: form.isAllDay ? undefined : form.eTime || undefined,
+    tz: form.timezone,
+    o: form.isOnline ? "" : undefined,
+    a: form.isAllDay ? "" : undefined,
   };
 
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== ""));
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  );
 }
 
-export function paramsSerializer(params: Record<string, string>): string {
+export function paramsSerializer(
+  params: Record<string, string | undefined>
+): string {
   return Object.keys(params)
     .sort()
-    .filter((k) => params[k] !== undefined && params[k] !== "")
+    .filter((k) => params[k] !== undefined)
     .map(
       (k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k] ?? "")}`
     )
@@ -149,4 +158,114 @@ export function paramsDeserializer(query: string): Record<string, string> {
   }
 
   return out;
+}
+
+// Generates an array of time options.
+export const timeOptions = (() => {
+  const options = [];
+  const locale = new Intl.Locale(navigator.language ?? "en-US");
+  const date = new Date();
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+
+  for (let i = 0; i < 24; i++) {
+    for (let j = 0; j < 60; j += 30) {
+      const dateTime = new Date(y, m, d, i, j, 0, 0);
+
+      // Create a formatted time string based on the user's locale.
+      const label = new Intl.DateTimeFormat(locale, {
+        hour: "numeric",
+        minute: "numeric",
+      }).format(dateTime);
+
+      const key = `${i.toString().padStart(2, "0")}:${j
+        .toString()
+        .padStart(2, "0")}`;
+
+      options.push({
+        key,
+        label,
+      });
+    }
+  }
+  return options;
+})();
+
+export function dateFromParts(
+  dateStr: string,
+  timeStr: string,
+  timeZone: string
+): Date {
+  // Combine date and time into a "fake" UTC Date (interpreted in local system time)
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hour, minute] =
+    timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
+
+  // This is the wall-clock time in the given timeZone.
+  // We need to find the actual UTC instant that represents this time in that zone.
+  const utcTimestamp = Date.UTC(year, month - 1, day, hour, minute);
+
+  // Use Intl.DateTimeFormat to compute the offset for the given timeZone
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  // Format a date that we *pretend* is UTC and read what the zone says
+  const parts = formatter.formatToParts(new Date(utcTimestamp));
+  const get = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value);
+
+  const zonedYear = get("year");
+  const zonedMonth = get("month");
+  const zonedDay = get("day");
+  const zonedHour = get("hour");
+  const zonedMinute = get("minute");
+  const zonedSecond = get("second");
+
+  // This gives us what time the UTC timestamp *looks like* in the target zone.
+  // The difference between desired local time and this tells us the offset.
+  const diff =
+    Date.UTC(
+      zonedYear,
+      zonedMonth - 1,
+      zonedDay,
+      zonedHour,
+      zonedMinute,
+      zonedSecond
+    ) - utcTimestamp;
+
+  // Adjust by that difference to get the actual UTC instant of the intended wall-clock time
+  return new Date(utcTimestamp - diff);
+}
+
+export function icalDateFromParts(
+  dateStr: string,
+  timeStr: string,
+  location: string
+) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hour, minute] =
+    timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
+
+  const tz = new ICAL.Timezone({ location });
+
+  return new ICAL.Time(
+    {
+      year,
+      month,
+      day,
+      hour,
+      minute,
+      isDate: timeStr === "",
+    },
+    tz
+  );
 }

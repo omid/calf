@@ -9,7 +9,6 @@ import {
   DatePicker,
   Autocomplete,
   AutocompleteItem,
-  type DateValue,
   Link,
   Alert,
 } from "@heroui/react";
@@ -17,6 +16,7 @@ import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
 import {
   ChatBubbleBottomCenterTextIcon,
+  ClockIcon,
   EyeIcon,
   EyeSlashIcon,
   GlobeAltIcon,
@@ -26,27 +26,27 @@ import {
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
 import CollapsibleSection from "./CollapsibleSection";
-import { formToRecord, paramsSerializer, encryptString } from "./helpers";
 import {
-  now,
-  getLocalTimeZone,
-  ZonedDateTime,
-  CalendarDate,
-  fromDate,
-} from "@internationalized/date";
+  formToRecord,
+  paramsSerializer,
+  encryptString,
+  timeOptions,
+} from "./helpers";
 import { initialForm } from "./eventForm";
-
-const isZoned = (v: DateValue | null): v is ZonedDateTime =>
-  !!v && "timeZone" in v;
+import { CalendarDate } from "@internationalized/date";
 
 const sharePath = "/share";
+
+const FixedLabel = ({ children }: { children: React.ReactNode }) => (
+  <span className="inline-block w-18">{children}</span>
+);
 
 function App() {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState<"form" | "share">("form");
   const urlPrefix = import.meta.env.MODE === "production" ? "/calf" : "";
   const origin = window.location.origin;
-  // controlled input for Autocomplete so default timezone is visible
+  // controlled input for Autocomplete so default timeZone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
   const [formError, setFormError] = useState("");
   const [passwordEnabled, setPasswordEnabled] = useState<boolean>(false);
@@ -54,31 +54,12 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [startDate, setStartDate] = useState<
-    ZonedDateTime | CalendarDate | null
-  >(now(getLocalTimeZone()));
-  const [endDate, setEndDate] = useState<ZonedDateTime | CalendarDate | null>(
-    now(getLocalTimeZone()).add({ hours: 1 })
-  );
   const [shareLink, setShareLink] = useState<string>("");
   // needed to trigger async share link generation before rendering share step
   const [pendingShare, setPendingShare] = useState(false);
   const isSharePage = window.location.pathname === urlPrefix + sharePath;
   const [isPassVisible, setIsPassVisible] = useState(false);
   const togglePassVisibility = () => setIsPassVisible(!isPassVisible);
-
-  useEffect(() => {
-    const start = now(getLocalTimeZone());
-    const end = start.add({ hours: 1 });
-    setStartDate(start);
-    setEndDate(end);
-    setForm((f) => ({
-      ...f,
-      sDate: start.toDate().toISOString(),
-      eDate: end.toDate().toISOString(),
-      timezone: getLocalTimeZone(),
-    }));
-  }, []);
 
   // debounced search wrapper, memoized to avoid recreation on each render
   const debouncedSearch = useMemo(
@@ -110,80 +91,89 @@ function App() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
-  // Generate share link with params
-  const urlParams = new URLSearchParams();
-  urlParams.set("t", form.title);
-  if (form.description && form.description.trim()) {
-    urlParams.set("d", form.description);
-  }
-  urlParams.set("l", form.location);
-  // Create combined start/end in UTC YYYYMMDDTHHMMSSZ format
-  // Create combined start/end in YYYYMMDDTHHMMSS±HHMM format (local timezone offset)
-  const pad = (n: number, len = 2) => String(n).padStart(len, "0");
-  const formatWithOffset = (d: Date) => {
-    const y = d.getFullYear();
-    const m = pad(d.getMonth() + 1);
-    const day = pad(d.getDate());
-    const hh = pad(d.getHours());
-    const mm = pad(d.getMinutes());
-    const ss = pad(d.getSeconds());
-    return `${y}${m}${day}T${hh}${mm}${ss}Z`;
-  };
-
-  try {
-    const startDt = new Date(form.sDate);
-    const startParam = formatWithOffset(startDt);
-    urlParams.set("s", startParam);
-  } catch {
-    // ignore
-  }
-  try {
-    const endDt = new Date(form.eDate || form.sDate);
-    const endParam = formatWithOffset(endDt);
-    urlParams.set("e", endParam);
-  } catch {
-    // ignore
-  }
-  urlParams.set("tz", form.timezone);
-  urlParams.set("o", form.isOnline ? "1" : "0");
-  urlParams.set("a", form.isAllDay ? "1" : "0");
-  // Share link is handled in state above, see below for generation
-
-  const FixedLabel = ({ children }: { children: React.ReactNode }) => (
-    <span className="inline-block w-20">{children}</span>
-  );
-
-  const handleEndChange = (date: ZonedDateTime | CalendarDate | null) => {
-    if (!date) return;
-    setEndDate(date);
-    const dt = date.toDate(form.timezone);
-    setForm((f) => ({
-      ...f,
-      eDate: dt.toISOString(),
-    }));
-  };
-
-  const handleStartChange = (date: ZonedDateTime | CalendarDate | null) => {
-    if (!date) return;
-    setStartDate(date);
-    const dt = date.toDate(form.timezone);
-    setForm((f) => ({
-      ...f,
-      sDate: dt.toISOString(),
-    }));
-    if (date && !endDate) {
-      setEndDate(date.add({ hours: 1 }));
+  const onSharePress = async () => {
+    // validate required fields: title, sDate, endDate
+    if (!form.title.trim() || !form.sDate || !form.eDate) {
+      setFormError(
+        "Title, Start date and End date are required to create an event."
+      );
+      return;
+    }
+    // validate start < end
+    if (form.isAllDay) {
+      if (form.eDate <= form.sDate) {
+        setFormError("End date must be after Start date.");
+        return;
+      }
+    } else {
+      if (form.eDate <= form.sDate) {
+        const startDt = form.sDate.toString() + " " + form.sTime;
+        const endDt = form.eDate.toString() + " " + form.eTime;
+        if (new Date(endDt) <= new Date(startDt)) {
+          setFormError("End date/time must be after Start date/time.");
+          return;
+        }
+      }
+    }
+    setFormError("");
+    // Compose event params for share link:
+    const params = formToRecord(form);
+    if (passwordEnabled && form.password) {
+      setPendingShare(true);
+      try {
+        const serializedParams = paramsSerializer(params);
+        const cipher = await encryptString(serializedParams, form.password);
+        setShareLink(
+          `${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(cipher)}`
+        );
+      } finally {
+        setPendingShare(false);
+        setStep("share");
+      }
+    } else {
+      // Ensure all values are strings
+      const stringParams: Record<string, string> = Object.fromEntries(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)])
+      );
+      const urlParams = new URLSearchParams(stringParams);
+      setShareLink(`${origin}${urlPrefix}${sharePath}?${urlParams.toString()}`);
+      setStep("share");
     }
   };
 
-  const handleTimezoneChange = (tz: Key | null) => {
-    if (!tz) return;
-    setForm((f) => ({ ...f, timezone: String(tz) }));
-    if (startDate && isZoned(startDate)) {
-      handleStartChange(fromDate(startDate.toDate(), String(tz)));
+  const onChangeStartDate = (date: CalendarDate | null) => {
+    setForm((f) => ({ ...f, sDate: date }));
+
+    if (form.eDate && date && form.eDate < date) {
+      setForm((f) => ({ ...f, eDate: date }));
     }
-    if (endDate && isZoned(endDate)) {
-      handleEndChange(fromDate(endDate.toDate(), String(tz)));
+  };
+
+  const onChangeStartTime = (timeKey: Key | null) => {
+    if (!timeKey) return;
+    const time = String(timeKey);
+    setForm((f) => ({ ...f, sTime: time }));
+
+    if (!form.eDate || !form.sDate) return;
+
+    const startDt = new Date(form.sDate.toString() + " " + time);
+    const endDt = new Date(form.eDate.toString() + " " + form.eTime);
+    if (endDt <= startDt) {
+      // adjust end time to be 1 hour after start time
+      const newEndDt = new Date(startDt.getTime() + 60 * 60 * 1000);
+      const eDate = new CalendarDate(
+        newEndDt.getFullYear(),
+        newEndDt.getMonth() + 1,
+        newEndDt.getDate()
+      );
+      const h = newEndDt.getHours();
+      const m = newEndDt.getMinutes();
+      const eTime = `${h.toString().padStart(2, "0")}:${m
+        .toString()
+        .padStart(2, "0")}`;
+      setForm((f) => ({ ...f, eDate, eTime }));
     }
   };
 
@@ -222,19 +212,17 @@ function App() {
               <div className="w-full max-w-full sm:max-w-2xl md:max-w-3xl bg-white rounded shadow p-2 sm:p-4 md:p-6 flex flex-col gap-3 sm:gap-4">
                 <Input
                   value={form.title}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, title: e.target.value }))
-                  }
+                  onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
                   placeholder="Title"
                   startContent={
-                    <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-500" />
+                    <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />
                   }
                   required
                 />
                 <Textarea
                   value={form.description}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, description: e.target.value }))
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, description: v }))
                   }
                   placeholder="Description"
                   rows={3}
@@ -246,16 +234,15 @@ function App() {
                   >
                     <Input
                       value={form.location}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setForm((f) => ({ ...f, location: val }));
+                      onValueChange={(v) => {
+                        setForm((f) => ({ ...f, location: v }));
                         if (!form.isOnline) {
-                          debouncedSearch(String(val));
+                          debouncedSearch(String(v));
                           setShowSuggestions(true);
                         }
                       }}
                       startContent={
-                        <MapPinIcon className="h-5 w-5 text-gray-500" />
+                        <MapPinIcon className="h-5 w-5 text-gray-400" />
                       }
                       placeholder={form.isOnline ? "Meeting Link" : "Location"}
                       type={form.isOnline ? "url" : "text"}
@@ -307,7 +294,7 @@ function App() {
                 </div>
 
                 <div className="flex flex-col xs:flex-row gap-3">
-                  <div className="pt-1 flex-1 min-w-25 max-w-25 ">
+                  <div className="pt-1 flex-1 min-w-25 max-w-25">
                     <ChipCheckbox
                       checked={form.isAllDay}
                       onValueChange={(isAllDay: boolean) => {
@@ -322,32 +309,74 @@ function App() {
                   </div>
 
                   <div className="gap-3 flex flex-col flex-auto">
-                    <div className="col-start-1">
+                    <div className="group flex flex-col xs:flex-row gap-3">
                       <DatePicker
-                        label={<FixedLabel>Start Date</FixedLabel>}
+                        label={<FixedLabel>Start</FixedLabel>}
                         labelPlacement="outside-left"
-                        value={startDate}
-                        onChange={handleStartChange}
-                        granularity={form.isAllDay ? "day" : "minute"}
+                        value={form.sDate}
+                        onChange={onChangeStartDate}
+                        granularity="day"
                       />
+                      {!form.isAllDay && (
+                        <Autocomplete
+                          className="xs:max-w-32"
+                          startContent={
+                            <ClockIcon className="h-5 w-5 text-gray-400" />
+                          }
+                          allowsCustomValue
+                          isClearable={false}
+                          inputValue={form.sTime}
+                          selectedKey={form.sTime}
+                          isVirtualized={false}
+                          onSelectionChange={onChangeStartTime}
+                        >
+                          {timeOptions.map((time) => (
+                            <AutocompleteItem key={time.key}>
+                              {time.label}
+                            </AutocompleteItem>
+                          ))}
+                        </Autocomplete>
+                      )}
                     </div>
 
-                    <div className="col-start-1">
+                    <div className="group flex flex-col xs:flex-row gap-3">
                       <DatePicker
-                        label={<FixedLabel>End Date</FixedLabel>}
+                        label={<FixedLabel>End</FixedLabel>}
                         labelPlacement="outside-left"
-                        value={endDate}
-                        onChange={handleEndChange}
-                        granularity={form.isAllDay ? "day" : "minute"}
+                        value={form.eDate}
+                        onChange={(v) => setForm((f) => ({ ...f, eDate: v }))}
+                        granularity="day"
                       />
+                      {!form.isAllDay && (
+                        <Autocomplete
+                          className="xs:max-w-32"
+                          startContent={
+                            <ClockIcon className="h-5 w-5 text-gray-400" />
+                          }
+                          allowsCustomValue
+                          isVirtualized={false}
+                          isClearable={false}
+                          inputValue={form.eTime}
+                          selectedKey={form.eTime}
+                          onSelectionChange={(v) => {
+                            setForm((f) => ({ ...f, eTime: String(v) }));
+                          }}
+                        >
+                          {timeOptions.map((time) => (
+                            <AutocompleteItem key={time.key}>
+                              {time.label}
+                            </AutocompleteItem>
+                          ))}
+                        </Autocomplete>
+                      )}
                     </div>
                     {!form.isAllDay && (
                       <div className="col-start-1">
                         <Autocomplete
                           startContent={
-                            <GlobeAltIcon className="h-5 w-5 text-gray-500" />
+                            <GlobeAltIcon className="h-5 w-5 text-gray-400" />
                           }
-                          label={<FixedLabel>Timezone</FixedLabel>}
+                          label={<FixedLabel>TimeZone</FixedLabel>}
                           labelPlacement="outside-left"
                           id="timezone"
                           placeholder="Type to filter timezones"
@@ -356,7 +385,9 @@ function App() {
                           )}
                           fullWidth={false}
                           defaultSelectedKey={form.timezone}
-                          onSelectionChange={handleTimezoneChange}
+                          onSelectionChange={(v) => {
+                            setForm((f) => ({ ...f, timezone: String(v) }));
+                          }}
                           isClearable={false}
                         >
                           {Intl.supportedValuesOf("timeZone").map((tz) => (
@@ -387,7 +418,7 @@ function App() {
                             marginLeft: 6,
                           }}
                         >
-                          <LockClosedIcon className="h-5 w-5 inline" />
+                          <LockClosedIcon className="h-5 w-5 text-gray-400 inline" />
                         </span>
                       ) : (
                         <span
@@ -398,7 +429,7 @@ function App() {
                             marginLeft: 6,
                           }}
                         >
-                          <LockOpenIcon className="h-5 w-5 inline" />
+                          <LockOpenIcon className="h-5 w-5 text-gray-400 inline" />
                         </span>
                       )}
                     </span>
@@ -471,55 +502,7 @@ function App() {
                   color="primary"
                   size="lg"
                   className="font-bold"
-                  onPress={async () => {
-                    // validate required fields: title, sDate, endDate
-                    if (!form.title.trim() || !form.sDate || !form.eDate) {
-                      setFormError(
-                        "Title, Start date and End date are required to create an event."
-                      );
-                      return;
-                    }
-                    // validate start < end
-                    const startDt = new Date(form.sDate);
-                    const endDt = new Date(form.eDate);
-                    if (isNaN(startDt.getTime()) || isNaN(endDt.getTime())) {
-                      setFormError("Invalid start or end date/time.");
-                      return;
-                    }
-                    if (endDt <= startDt) {
-                      setFormError(
-                        "End date/time must be after Start date/time."
-                      );
-                      return;
-                    }
-                    setFormError("");
-                    // Compose event params for share link:
-                    const params = formToRecord(form);
-                    if (passwordEnabled && form.password) {
-                      setPendingShare(true);
-                      try {
-                        const serializedParams = paramsSerializer(params);
-                        const cipher = await encryptString(
-                          serializedParams,
-                          form.password
-                        );
-                        setShareLink(
-                          `${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(
-                            cipher
-                          )}`
-                        );
-                      } finally {
-                        setPendingShare(false);
-                        setStep("share");
-                      }
-                    } else {
-                      const urlParams = new URLSearchParams(params);
-                      setShareLink(
-                        `${origin}${urlPrefix}${sharePath}?${urlParams.toString()}`
-                      );
-                      setStep("share");
-                    }
-                  }}
+                  onPress={onSharePress}
                   title="Share Event"
                 >
                   Share Event

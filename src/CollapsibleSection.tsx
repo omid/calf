@@ -28,7 +28,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         type="button"
       >
         {open ? (
-          <ChevronDownIcon className="h-5 w-5 mr-1 text-gray-500" />
+          <ChevronDownIcon className="h-5 w-5 mr-1 text-gray-400" />
         ) : (
           <ChevronRightIcon className="h-5 w-5 mr-1 text-gray-400" />
         )}
