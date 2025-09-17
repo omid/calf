@@ -44,14 +44,14 @@ export default function Share() {
       const data = paramsDeserializer(base);
       // set event metadata exactly as "standard" event
       setProtectedEvent({
-        title: data.t,
-        description: data.d,
-        location: data.l,
-        sDate: data.sd,
-        sTime: data.st,
-        eDate: data.ed,
-        eTime: data.et,
-        timezone: data.tz,
+        title: data.t ?? "",
+        description: data.d ?? "",
+        location: data.l ?? "",
+        sDate: data.sd ?? "",
+        sTime: data.st ?? "",
+        eDate: data.ed ?? "",
+        eTime: data.et ?? "",
+        timezone: data.tz ?? "",
         isOnline: data.o === "1",
         isAllDay: data.a === "1",
       });
