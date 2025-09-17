@@ -163,7 +163,8 @@ export function paramsDeserializer(query: string): Record<string, string> {
 // Generates an array of time options.
 export const timeOptions = (() => {
   const options = [];
-  const locale = new Intl.Locale(navigator.language ?? "en-US");
+  const locale = new Intl.Locale(getUserLocale());
+
   const date = new Date();
   const y = date.getFullYear();
   const m = date.getMonth() + 1;
@@ -205,9 +206,10 @@ export function dateFromParts(
   // This is the wall-clock time in the given timeZone.
   // We need to find the actual UTC instant that represents this time in that zone.
   const utcTimestamp = Date.UTC(year, month - 1, day, hour, minute);
+  const locale = new Intl.Locale(getUserLocale());
 
   // Use Intl.DateTimeFormat to compute the offset for the given timeZone
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  const formatter = new Intl.DateTimeFormat(locale, {
     timeZone,
     hour12: false,
     year: "numeric",
@@ -268,4 +270,8 @@ export function icalDateFromParts(
     },
     tz
   );
+}
+
+export function getUserLocale() {
+  return navigator?.languages?.[0] ?? navigator.language ?? "en-US";
 }

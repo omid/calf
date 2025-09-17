@@ -3,7 +3,12 @@ import { generateICal } from "./icalUtils";
 import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import { Link } from "@heroui/react";
 import { useState } from "react";
-import { dateFromParts, decryptString, paramsDeserializer } from "./helpers";
+import {
+  dateFromParts,
+  decryptString,
+  getUserLocale,
+  paramsDeserializer,
+} from "./helpers";
 import type { EventQS } from "./eventForm";
 
 function getShareUnlockState() {
@@ -120,6 +125,7 @@ export default function Share() {
   const formatInTimezone = (date: Date, tz?: string) => {
     if (!tz) return date.toUTCString();
     try {
+      const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "short",
@@ -129,7 +135,7 @@ export default function Share() {
         hour12: false,
         timeZone: tz,
       };
-      return new Intl.DateTimeFormat(undefined, opts).format(date);
+      return new Intl.DateTimeFormat(locale, opts).format(date);
     } catch {
       return date.toUTCString();
     }
@@ -138,13 +144,13 @@ export default function Share() {
   const formatInTime = (date: Date, tz?: string) => {
     if (!tz) return date.toUTCString();
     try {
+      const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false,
         timeZone: tz,
       };
-      return new Intl.DateTimeFormat(undefined, opts).format(date);
+      return new Intl.DateTimeFormat(locale, opts).format(date);
     } catch {
       return date.toUTCString();
     }
@@ -152,13 +158,14 @@ export default function Share() {
 
   const formatDateOnly = (date: Date) => {
     try {
+      const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
         year: "numeric",
         month: "short",
         day: "numeric",
         weekday: "long",
       };
-      return new Intl.DateTimeFormat(undefined, opts).format(date);
+      return new Intl.DateTimeFormat(locale, opts).format(date);
     } catch {
       return date.toISOString().slice(0, 10);
     }

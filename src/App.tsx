@@ -31,9 +31,11 @@ import {
   paramsSerializer,
   encryptString,
   timeOptions,
+  getUserLocale,
 } from "./helpers";
 import { initialForm } from "./eventForm";
 import { CalendarDate } from "@internationalized/date";
+import { I18nProvider } from "@react-aria/i18n";
 
 const sharePath = "/share";
 
@@ -60,6 +62,8 @@ function App() {
   const isSharePage = window.location.pathname === urlPrefix + sharePath;
   const [isPassVisible, setIsPassVisible] = useState(false);
   const togglePassVisibility = () => setIsPassVisible(!isPassVisible);
+
+  const locale = getUserLocale();
 
   // debounced search wrapper, memoized to avoid recreation on each render
   const debouncedSearch = useMemo(
@@ -310,13 +314,14 @@ function App() {
 
                   <div className="gap-3 flex flex-col flex-auto">
                     <div className="group flex flex-col xs:flex-row gap-3">
-                      <DatePicker
-                        label={<FixedLabel>Start</FixedLabel>}
-                        labelPlacement="outside-left"
-                        value={form.sDate}
-                        onChange={onChangeStartDate}
-                        granularity="day"
-                      />
+                      <I18nProvider locale={locale}>
+                        <DatePicker
+                          label={<FixedLabel>Start</FixedLabel>}
+                          labelPlacement="outside-left"
+                          value={form.sDate}
+                          onChange={onChangeStartDate}
+                        />
+                      </I18nProvider>
                       {!form.isAllDay && (
                         <Autocomplete
                           className="xs:max-w-32"
@@ -340,13 +345,14 @@ function App() {
                     </div>
 
                     <div className="group flex flex-col xs:flex-row gap-3">
-                      <DatePicker
-                        label={<FixedLabel>End</FixedLabel>}
-                        labelPlacement="outside-left"
-                        value={form.eDate}
-                        onChange={(v) => setForm((f) => ({ ...f, eDate: v }))}
-                        granularity="day"
-                      />
+                      <I18nProvider locale={locale}>
+                        <DatePicker
+                          label={<FixedLabel>End</FixedLabel>}
+                          labelPlacement="outside-left"
+                          value={form.eDate}
+                          onChange={(v) => setForm((f) => ({ ...f, eDate: v }))}
+                        />
+                      </I18nProvider>
                       {!form.isAllDay && (
                         <Autocomplete
                           className="xs:max-w-32"
@@ -418,7 +424,7 @@ function App() {
                             marginLeft: 6,
                           }}
                         >
-                          <LockClosedIcon className="h-5 w-5 text-gray-400 inline" />
+                          <LockClosedIcon className="h-5 w-5 text-red-400 inline" />
                         </span>
                       ) : (
                         <span
