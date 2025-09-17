@@ -9,8 +9,6 @@ type Props = {
   onClose: () => void;
   username?: string;
   repo?: string;
-  donateUrl?: string;
-  reportBugUrl?: string;
 };
 
 export default function AboutModal({
@@ -18,12 +16,13 @@ export default function AboutModal({
   onClose,
   username = "omid",
   repo = "calf",
-  donateUrl = "https://github.com/sponsors/omid",
-  reportBugUrl = "https://github.com/omid/calf/issues",
 }: Props) {
   if (!isOpen) return null;
 
   const repoUrl = `https://github.com/${username}/${repo}`;
+  const reportBugUrl = `${repoUrl}/issues`;
+  const changeLogUrl = `${repoUrl}/blob/master/CHANGELOG.md`;
+  const donateUrl = `https://github.com/sponsors/${username}`;
 
   return (
     <div
@@ -90,11 +89,22 @@ export default function AboutModal({
                 Bugs:{" "}
                 <a
                   className="text-blue-600 underline"
-                  href={donateUrl}
+                  href={reportBugUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   {reportBugUrl}
+                </a>
+              </li>
+              <li>
+                Changelog:{" "}
+                <a
+                  className="text-blue-600 underline"
+                  href={changeLogUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {changeLogUrl}
                 </a>
               </li>
             </ul>

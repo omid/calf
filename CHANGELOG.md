@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.1.1] - 2025-09-17
+
+- Fix links in the About modal
+
 ## [0.1.0] - 2025-09-17 (Backward incompatible)
 
 - Time selection is easier and smarter now.
