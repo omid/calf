@@ -132,7 +132,6 @@ export default function Share() {
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        hour12: false,
         timeZone: tz,
       };
       return new Intl.DateTimeFormat(locale, opts).format(date);
@@ -230,9 +229,7 @@ export default function Share() {
                   href={
                     event.isOnline
                       ? event.location
-                      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                          event.location
-                        )}`
+                      : `https://www.google.com/maps/search/?api=1&query=${location}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"

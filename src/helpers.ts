@@ -211,7 +211,6 @@ export function dateFromParts(
   // Use Intl.DateTimeFormat to compute the offset for the given timeZone
   const formatter = new Intl.DateTimeFormat(locale, {
     timeZone,
-    hour12: false,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
