@@ -23,7 +23,6 @@ import {
   LockClosedIcon,
   LockOpenIcon,
   MapPinIcon,
-  XMarkIcon,
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
 import CollapsibleSection from "./CollapsibleSection";
