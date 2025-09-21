@@ -23,6 +23,7 @@ import {
   LockClosedIcon,
   LockOpenIcon,
   MapPinIcon,
+  XMarkIcon,
 } from "@heroicons/react/16/solid";
 import ChipCheckbox from "./ChipCheckbox";
 import CollapsibleSection from "./CollapsibleSection";
@@ -101,6 +102,11 @@ function App() {
       setFormError(
         "Title, Start date and End date are required to create an event."
       );
+      return;
+    }
+    // validate email format if provided
+    if (form.creatorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.creatorEmail)) {
+      setFormError("Please enter a valid email address.");
       return;
     }
     // validate start < end
@@ -409,6 +415,44 @@ function App() {
                     )}
                   </div>
                 </div>
+
+                {/* Collapsible section for organizer email */}
+                <CollapsibleSection
+                  initiallyOpen={!!form.creatorEmail}
+                  title={
+                    <span className="text-sm">
+                      Organizer email (optional)
+                    </span>
+                  }
+                >
+                  <Alert
+                    color="primary"
+                    variant="faded"
+                    title={
+                      <div className="mb-2 font-bold">
+                        Add an organizer email
+                      </div>
+                    }
+                    className="my-4 text-left"
+                    description={
+                      <div>
+                        We will use this email to enable RSVP functionality for attendees.
+                        <br />
+                        Attendees can respond with Yes, No, or Maybe to your event.
+                        <br />
+                        It won't be exposed unless you share the event.
+                      </div>
+                    }
+                  />
+                  <Input
+                    type="email"
+                    placeholder="Enter organizer email (optional)"
+                    value={form.creatorEmail}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, creatorEmail: e.target.value }))
+                    }
+                  />
+                </CollapsibleSection>
 
                 {/* Collapsible section for password protection */}
                 <CollapsibleSection

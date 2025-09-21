@@ -3,6 +3,7 @@ import { generateICal } from "./icalUtils";
 import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
 import { Link } from "@heroui/react";
 import { useState } from "react";
+import RSVP from "./RSVP";
 import {
   dateFromParts,
   decryptString,
@@ -31,6 +32,7 @@ function parseStandardParams(): EventQS {
     timezone: params.get("tz") || "",
     isOnline: typeof params.get("o") === "string",
     isAllDay: typeof params.get("a") === "string",
+    creatorEmail: params.get("ce") || "",
   };
 }
 
@@ -59,6 +61,7 @@ export default function Share() {
         timezone: data.tz ?? "",
         isOnline: data.o === "1",
         isAllDay: data.a === "1",
+        creatorEmail: data.ce ?? "",
       });
       setUnlocked(true);
     } catch {
@@ -214,7 +217,7 @@ export default function Share() {
           <div className="hidden xs:block">
             <CalendarDaysIcon className="w-35 h-35 text-gray-500" />
           </div>
-          <div className="flex flex-col gap-2 justify-start text-left align-middle ">
+          <div className="flex flex-col gap-2 justify-start text-left align-middle">
             <div className="flex flex-row items-center gap-3">
               <div className="xs:hidden">
                 <CalendarDaysIcon className="w-10 h-10 text-gray-700" />
@@ -270,8 +273,12 @@ export default function Share() {
                 </div>
               </>
             )}
+            
+            {/* RSVP Section */}
+            <RSVP event={event} />
           </div>
         </div>
+
         <div className="font-semibold">Add to your calendar:</div>
 
         <div className="grid xs:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-3 w-full">
@@ -357,6 +364,7 @@ export default function Share() {
           <div className="text-sm text-gray-600 break-all">{shareLink}</div>
         </div>
       </div>
+
     </div>
   );
 }
