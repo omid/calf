@@ -190,7 +190,7 @@ function App() {
 
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
-      <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-lg md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-800 flex flex-col items-center p-2 sm:p-4">
+      <div className="sm:rounded-lg w-full max-w-[100vw] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-gray-50 text-gray-800 flex flex-col items-center p-2 sm:p-4">
         <img
           src="assets/logo.avif"
           className="h-20 sm:h-28 md:h-30 mb-2"
@@ -329,20 +329,20 @@ function App() {
                       </I18nProvider>
                       {!form.isAllDay && (
                         <Autocomplete
-                          className="xs:max-w-32"
+                          className="xs:max-w-34"
                           startContent={
                             <ClockIcon className="h-5 w-5 text-gray-400" />
                           }
                           allowsCustomValue
                           isClearable={false}
-                          inputValue={form.sTime}
+                          inputValue={timeOptions[form.sTime]}
                           selectedKey={form.sTime}
                           isVirtualized={false}
                           onSelectionChange={onChangeStartTime}
                         >
-                          {timeOptions.map((time) => (
-                            <AutocompleteItem key={time.key}>
-                              {time.label}
+                          {Object.entries(timeOptions).map(([key, label]) => (
+                            <AutocompleteItem key={key}>
+                              {label}
                             </AutocompleteItem>
                           ))}
                         </Autocomplete>
@@ -360,20 +360,20 @@ function App() {
                       </I18nProvider>
                       {!form.isAllDay && (
                         <Autocomplete
-                          className="xs:max-w-32"
+                          className="xs:max-w-34"
                           startContent={
                             <ClockIcon className="h-5 w-5 text-gray-400" />
                           }
                           allowsCustomValue
                           isVirtualized={false}
                           isClearable={false}
-                          inputValue={form.eTime}
+                          inputValue={timeOptions[form.eTime]}
                           selectedKey={form.eTime}
                           onSelectionChange={onChangeEndTime}
                         >
-                          {timeOptions.map((time) => (
-                            <AutocompleteItem key={time.key}>
-                              {time.label}
+                          {Object.entries(timeOptions).map(([key, label]) => (
+                            <AutocompleteItem key={key}>
+                              {label}
                             </AutocompleteItem>
                           ))}
                         </Autocomplete>
