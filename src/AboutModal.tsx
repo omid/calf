@@ -165,7 +165,7 @@ export default function AboutModal({
             </ul>
           </div>
 
-          <div className="rounded-lg border border-amber-300  bg-amber-50 dark:border-none dark:bg-amber-900 p-3 pb-5">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 dark:border-none dark:bg-amber-900 p-3 pb-5">
             <h3 className="font-semibold text-amber-900 dark:text-amber-50">
               Disclaimer
             </h3>

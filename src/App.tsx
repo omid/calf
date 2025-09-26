@@ -181,6 +181,11 @@ function App() {
     }
   };
 
+  const onChangeEndTime = (timeKey: Key | null) => {
+    if (!timeKey) return;
+    setForm((f) => ({ ...f, eTime: String(timeKey) }));
+  };
+
   const iframeSrc = `counter.html?path=${isSharePage ? sharePath : "/"}`;
 
   return (
@@ -364,9 +369,7 @@ function App() {
                           isClearable={false}
                           inputValue={form.eTime}
                           selectedKey={form.eTime}
-                          onSelectionChange={(v) => {
-                            setForm((f) => ({ ...f, eTime: String(v) }));
-                          }}
+                          onSelectionChange={onChangeEndTime}
                         >
                           {timeOptions.map((time) => (
                             <AutocompleteItem key={time.key}>
