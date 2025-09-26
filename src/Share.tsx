@@ -364,7 +364,6 @@ export default function Share() {
           <div className="text-sm text-gray-600 break-all">{shareLink}</div>
         </div>
       </div>
-
     </div>
   );
 }
