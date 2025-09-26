@@ -9,7 +9,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --breakpoint-xs: 440px;
+  --breakpoint-xs: 512px;
 }
 
 :root {

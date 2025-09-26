@@ -163,7 +163,7 @@ export function paramsDeserializer(query: string): Record<string, string> {
 
 // Generates an array of time options.
 export const timeOptions = (() => {
-  const options = [];
+  const options = {} as Record<string, string>;
   const locale = new Intl.Locale(getUserLocale());
 
   const date = new Date();
@@ -185,10 +185,7 @@ export const timeOptions = (() => {
         .toString()
         .padStart(2, "0")}`;
 
-      options.push({
-        key,
-        label,
-      });
+      options[key] = label;
     }
   }
   return options;
