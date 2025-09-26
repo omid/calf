@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowTopRightOnSquareIcon,
   XMarkIcon,
@@ -17,6 +18,27 @@ export default function AboutModal({
   username = "omid",
   repo = "calf",
 }: Props) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setVisible(false);
+      return;
+    }
+    const t = window.setTimeout(() => setVisible(true), 10);
+    return () => window.clearTimeout(t);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const repoUrl = `https://github.com/${username}/${repo}`;
@@ -31,18 +53,26 @@ export default function AboutModal({
       role="dialog"
       aria-labelledby="about-title"
     >
-      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 backdrop-blur-sm ${
+          visible ? "opacity-100" : "opacity-0"
+        }`}
         onClick={onClose}
         aria-hidden="true"
       />
-      {/* Dialog */}
-      <div className="relative w-[92vw] max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+
+      <div
+        className={`relative w-[92vw] max-w-2xl max-h-[90vh] rounded-2xl bg-white p-6 shadow-xl transform transition-all duration-300 flex flex-col overflow-hidden ${
+          visible
+            ? "opacity-100 translate-y-0 scale-100"
+            : "opacity-0 translate-y-2 scale-95"
+        }`}
+      >
         <div className="flex items-start justify-between">
-          <h2 id="about-title" className="text-xl font-bold text-black">
-            Calf (Calendar Factory) — About & Disclaimer
+          <h2 id="about-title" className="text-xl font-bold">
+            Calf (Calendar Factory) — About &amp; Disclaimer
           </h2>
+
           <Button
             className="bg-white min-w-auto"
             onPress={onClose}
@@ -52,7 +82,7 @@ export default function AboutModal({
           </Button>
         </div>
 
-        <div className="mt-4 space-y-4 text-sm text-gray-700 text-left">
+        <div className="mt-4 flex-1 overflow-y-auto space-y-4 text-sm text-gray-700 dark:text-gray-300 text-left pr-1">
           <p>
             <strong>Calf</strong> helps you create a calendar event and share it
             with a single link. Anyone with the link can add the event to their
@@ -135,9 +165,11 @@ export default function AboutModal({
             </ul>
           </div>
 
-          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
-            <h3 className="font-semibold text-amber-900">Disclaimer</h3>
-            <ul className="ml-5 list-disc space-y-1 text-amber-900">
+          <div className="rounded-lg border border-amber-300  bg-amber-50 dark:border-none dark:bg-amber-900 p-3 pb-5">
+            <h3 className="font-semibold text-amber-900 dark:text-amber-50">
+              Disclaimer
+            </h3>
+            <ul className="ml-5 list-disc space-y-1 text-amber-900 dark:text-amber-50">
               <li>
                 <strong>GitHub may track created links.</strong> Links you open
                 via GitHub Pages can appear in repository traffic or analytics.
@@ -154,7 +186,7 @@ export default function AboutModal({
           </p>
         </div>
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-6 flex justify-end gap-2 flex-shrink-0">
           <Button
             className="rounded-lg border bg-white px-4 py-2 text-gray-800 hover:shadow-sm"
             onPress={onClose}
