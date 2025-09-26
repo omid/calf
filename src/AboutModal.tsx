@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import {
   ArrowTopRightOnSquareIcon,
   XMarkIcon,
 } from "@heroicons/react/16/solid";
 import { Button } from "@heroui/react";
+import { useMemo } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -18,25 +18,8 @@ export default function AboutModal({
   username = "omid",
   repo = "calf",
 }: Props) {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setVisible(false);
-      return;
-    }
-    const t = window.setTimeout(() => setVisible(true), 10);
-    return () => window.clearTimeout(t);
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    body.style.overflow = "hidden";
-    return () => {
-      body.style.overflow = previousOverflow;
-    };
+  useMemo(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "auto";
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -55,7 +38,7 @@ export default function AboutModal({
     >
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 backdrop-blur-sm ${
-          visible ? "opacity-100" : "opacity-0"
+          isOpen ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
         aria-hidden="true"
@@ -63,7 +46,7 @@ export default function AboutModal({
 
       <div
         className={`relative w-[92vw] max-w-2xl max-h-[90vh] rounded-2xl bg-white p-6 shadow-xl transform transition-all duration-300 flex flex-col overflow-hidden ${
-          visible
+          isOpen
             ? "opacity-100 translate-y-0 scale-100"
             : "opacity-0 translate-y-2 scale-95"
         }`}
