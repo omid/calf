@@ -140,36 +140,6 @@ ${name}`;
             </ModalFooter>
         </ModalContent>
     </Modal>
-
-      {/*/!* RSVP Modal *!/*/}
-      {/*  <Modal isOpen={showRsvpModal} onClose={handleRsvpCancel}>*/}
-      {/*      <ModalHeader className="flex flex-col gap-1">RSVP to Event</ModalHeader>*/}
-      {/*      <ModalBody>*/}
-      {/*          <div className="mb-4">*/}
-      {/*              <p className="text-sm text-gray-600 mb-2">*/}
-      {/*                  Your response: <span className="font-medium">{pendingResponse}</span>*/}
-      {/*              </p>*/}
-      {/*              <Input*/}
-      {/*                  placeholder="Your name (optional)"*/}
-      {/*                  value={userName}*/}
-      {/*                  onChange={(e) => setUserName(e.target.value)}*/}
-      {/*                  className="w-full"*/}
-      {/*              />*/}
-      {/*              <p className="text-xs text-gray-500 mt-1">*/}
-      {/*                  If left empty, we'll use "Someone" in the email*/}
-      {/*              </p>*/}
-      {/*          </div>*/}
-      {/*      </ModalBody>*/}
-      {/*      <ModalFooter>*/}
-      {/*          <Button*/}
-      {/*              color="primary"*/}
-      {/*              onPress={handleRsvpSubmit}*/}
-      {/*              className="flex-1"*/}
-      {/*          >*/}
-      {/*              Send Email*/}
-      {/*          </Button>*/}
-      {/*      </ModalFooter>*/}
-      {/*  </Modal>*/}
     </>
   );
 }
