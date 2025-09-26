@@ -128,6 +128,7 @@ export function formToRecord(
     tz: form.timezone,
     o: form.isOnline ? "" : undefined,
     a: form.isAllDay ? "" : undefined,
+    ce: form.creatorEmail || undefined,
   };
 
   return Object.fromEntries(

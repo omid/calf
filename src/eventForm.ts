@@ -12,6 +12,7 @@ export type EventForm = {
   isOnline: boolean;
   isAllDay: boolean;
   password: string;
+  creatorEmail: string;
 };
 
 export type EventQS = {
@@ -25,6 +26,7 @@ export type EventQS = {
   timezone: string;
   isOnline: boolean;
   isAllDay: boolean;
+  creatorEmail: string;
 };
 
 const nowTime = function () {
@@ -69,4 +71,5 @@ export const initialForm: EventForm = {
   isOnline: false,
   isAllDay: false,
   password: "",
+  creatorEmail: "",
 };
