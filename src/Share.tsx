@@ -1,7 +1,11 @@
 import ReactQRCode from "react-qr-code";
 import { generateICal } from "./icalUtils";
-import { ArrowDownTrayIcon, CalendarDaysIcon } from "@heroicons/react/16/solid";
-import { Link } from "@heroui/react";
+import {
+  ArrowDownTrayIcon,
+  CalendarDaysIcon,
+  NoSymbolIcon,
+} from "@heroicons/react/16/solid";
+import { Button, Input, Link } from "@heroui/react";
 import { useState } from "react";
 import {
   dateFromParts,
@@ -34,15 +38,14 @@ function parseStandardParams(): EventQS {
   };
 }
 
-export default function Share() {
+export default function Share({ isDark }: { isDark: boolean }) {
   const lockState = getShareUnlockState();
   const [password, setPassword] = useState("");
   const [unlockError, setUnlockError] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [protectedEvent, setProtectedEvent] = useState<EventQS | null>(null);
 
-  async function handleUnlock(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleUnlock() {
     setUnlockError("");
     try {
       const base = await decryptString(lockState.cipher || "", password);
@@ -62,7 +65,9 @@ export default function Share() {
       });
       setUnlocked(true);
     } catch {
-      setUnlockError("Unlock failed, data format/corruption?");
+      setUnlockError(
+        "Unlock failed, either link is wrongly copied or password is wrong"
+      );
     }
   }
 
@@ -71,33 +76,32 @@ export default function Share() {
     if (!unlocked) {
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] py-24">
-          <form
-            onSubmit={handleUnlock}
-            className="flex flex-col bg-white border rounded-lg shadow-md p-4 gap-4 w-full max-w-sm"
-          >
-            <div className="font-bold text-lg mb-2">Protected event</div>
-            <div className="text-sm mb-1 text-slate-700">
+          <div className="flex flex-col bg-white border-3 border-gray-300 dark:border-gray-600 rounded-lg shadow-lg p-4 gap-4 w-full max-w-sm">
+            <div className="font-bold text-lg mb-2">
+              <NoSymbolIcon className="w-5 h-5 inline-block text-red-600 mr-2" />
+              Protected event
+            </div>
+            <div className="text-sm mb-1 text-slate-700 dark:text-slate-300">
               This event is password-protected. Enter password to show event
               details.
             </div>
-            <input
+            <Input
               type="password"
               autoFocus
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded border px-2 py-2"
             />
             {unlockError && (
               <div className="text-red-600 text-sm">{unlockError}</div>
             )}
-            <button
-              type="submit"
+            <Button
               className="w-full bg-blue-600 text-white font-medium rounded py-2 px-3 hover:bg-blue-700 mt-2"
+              onPress={handleUnlock}
             >
               Unlock Event
-            </button>
-          </form>
+            </Button>
+          </div>
         </div>
       );
     }
@@ -203,159 +207,164 @@ export default function Share() {
   // Apple Calendar: open the ICS (do not force download) so the OS can hand it to Calendar
   const appleLink = icalUrl; // keep as blob; omit `download` attr on the anchor
 
-  // Shared button styling to ensure uniform size
-  const btn =
-    "flex h-12 w-full items-center justify-center gap-3 rounded-lg shadow hover:shadow-lg text-base text-gray-800 transition";
-
   return (
-    <div className="bg-gray-50 text-gray-900 flex flex-col p-4">
-      <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4">
-        <div className="border border-gray-200 shadow-lg rounded p-4 flex flex-row gap-5">
-          <div className="hidden xs:block">
-            <CalendarDaysIcon className="w-35 h-35 text-gray-500" />
-          </div>
-          <div className="flex flex-col gap-2 justify-start text-left align-middle ">
-            <div className="flex flex-row items-center gap-3">
-              <div className="xs:hidden">
-                <CalendarDaysIcon className="w-10 h-10 text-gray-700" />
-              </div>
-              <div className="font-semibold wrap-anywhere">{event.title}</div>
+    <div className="w-full max-w-3xl p-1 pt-6 flex flex-col gap-4">
+      <div className="border-3 border-gray-200 dark:border-gray-700 shadow-lg rounded p-4 flex flex-row gap-5">
+        <div className="hidden xs:block">
+          <CalendarDaysIcon className="w-35 h-35 text-gray-500" />
+        </div>
+        <div className="flex flex-col gap-2 justify-start text-left align-middle ">
+          <div className="flex flex-row items-center gap-3">
+            <div className="xs:hidden">
+              <CalendarDaysIcon className="w-10 h-10 text-gray-700" />
             </div>
-            <div className="text-sm text-gray-700">{event.description}</div>
-            {event.location && (
-              <div className="text-sm text-gray-600 mt-2">
-                Location:{" "}
-                <Link
-                  href={
-                    event.isOnline
-                      ? event.location
-                      : `https://www.google.com/maps/search/?api=1&query=${location}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  {event.location}
-                </Link>
-              </div>
-            )}
-            {event.isAllDay ? (
+            <div className="font-semibold wrap-anywhere">{event.title}</div>
+          </div>
+          <div className="text-sm text-gray-700">{event.description}</div>
+          {event.location && (
+            <div className="text-sm text-gray-600 mt-2">
+              Location:{" "}
+              <Link
+                href={
+                  event.isOnline
+                    ? event.location
+                    : `https://www.google.com/maps/search/?api=1&query=${location}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                {event.location}
+              </Link>
+            </div>
+          )}
+          {event.isAllDay ? (
+            <div className="text-sm text-gray-600">
+              {formatDateOnly(startDt)} <br />
+              to {formatDateOnly(endDt)} (All day)
+            </div>
+          ) : formatDateOnly(startDt) === formatDateOnly(endDt) ? (
+            <>
               <div className="text-sm text-gray-600">
-                {formatDateOnly(startDt)} <br />
-                to {formatDateOnly(endDt)} (All day)
+                {formatDateOnly(startDt)}
               </div>
-            ) : formatDateOnly(startDt) === formatDateOnly(endDt) ? (
-              <>
-                <div className="text-sm text-gray-600">
-                  {formatDateOnly(startDt)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  {formatInTime(startDt, event.timezone)} to{" "}
-                  {formatInTime(endDt, event.timezone)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Time Zone: {tzDisplay}
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="text-sm text-gray-600">
-                  Start: {formatInTimezone(startDt, event.timezone)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  End: {formatInTimezone(endDt, event.timezone)}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Time Zone: {tzDisplay}
-                </div>
-              </>
-            )}
-          </div>
+              <div className="text-sm text-gray-600">
+                {formatInTime(startDt, event.timezone)} to{" "}
+                {formatInTime(endDt, event.timezone)}
+              </div>
+              <div className="text-sm text-gray-600">
+                Time Zone: {tzDisplay}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm text-gray-600">
+                Start: {formatInTimezone(startDt, event.timezone)}
+              </div>
+              <div className="text-sm text-gray-600">
+                End: {formatInTimezone(endDt, event.timezone)}
+              </div>
+              <div className="text-sm text-gray-600">
+                Time Zone: {tzDisplay}
+              </div>
+            </>
+          )}
         </div>
-        <div className="font-semibold">Add to your calendar:</div>
+      </div>
+      <div className="font-semibold">Add to your calendar:</div>
 
-        <div className="grid xs:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-3 w-full">
-          <Link
-            href={googleLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={btn}
-            aria-label="Add to Google Calendar"
-          >
-            <img
-              src="assets/google-calendar.avif"
-              alt="Google Calendar"
-              className="w-5 h-5"
-            />
-            Google Calendar
-          </Link>
+      <div className="grid xs:grid-cols-2 lg:grid-cols-3 grid-cols-1 gap-3 w-full">
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={googleLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          aria-label="Add to Google Calendar"
+        >
+          <img
+            src="assets/google-calendar.avif"
+            alt="Google Calendar"
+            className="w-5 h-5"
+          />
+          Google Calendar
+        </Button>
 
-          <Link
-            href={outlookLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={btn}
-            aria-label="Add to Outlook"
-          >
-            <img src="assets/outlook.avif" alt="Outlook" className="w-5 h-5" />
-            Outlook (Live)
-          </Link>
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={outlookLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          aria-label="Add to Outlook"
+        >
+          <img src="assets/outlook.avif" alt="Outlook" className="w-5 h-5" />
+          Outlook (Live)
+        </Button>
 
-          <Link
-            href={appleLink}
-            // NOTE: no download attribute — lets iOS/macOS open in Calendar
-            className={btn}
-            aria-label="Add to Apple Calendar"
-            type="text/calendar"
-          >
-            <img src="assets/apple.avif" alt="Apple" className="w-5 h-5" />
-            Apple Calendar
-          </Link>
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={appleLink}
+          // NOTE: no download attribute — lets iOS/macOS open in Calendar
+          aria-label="Add to Apple Calendar"
+          variant="ghost"
+        >
+          <img src="assets/apple.avif" alt="Apple" className="w-5 h-5" />
+          Apple Calendar
+        </Button>
 
-          <Link
-            href={office365Link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={btn}
-            aria-label="Add to Office 365"
-          >
-            <img
-              src="assets/office.avif"
-              alt="Office 365"
-              className="w-5 h-5"
-            />
-            Office 365
-          </Link>
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={office365Link}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          aria-label="Add to Office 365"
+        >
+          <img src="assets/office.avif" alt="Office 365" className="w-5 h-5" />
+          Office 365
+        </Button>
 
-          <Link
-            href={yahooLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={btn}
-            aria-label="Add to Yahoo Calendar"
-          >
-            <img src="assets/yahoo.avif" alt="Yahoo" className="w-5 h-5" />
-            Yahoo Calendar
-          </Link>
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={yahooLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          aria-label="Add to Yahoo Calendar"
+        >
+          <img src="assets/yahoo.avif" alt="Yahoo" className="w-5 h-5" />
+          Yahoo Calendar
+        </Button>
 
-          <Link
-            href={icalUrl}
-            download="event.ics"
-            className={btn}
-            aria-label="Download iCal file"
-          >
-            <ArrowDownTrayIcon className="w-5 h-5" />
-            Download iCal (.ics)
-          </Link>
+        <Button
+          showAnchorIcon
+          as={Link}
+          href={icalUrl}
+          download="event.ics"
+          variant="ghost"
+          aria-label="Download iCal file"
+        >
+          <ArrowDownTrayIcon className="w-5 h-5" />
+          Download iCal (.ics)
+        </Button>
+      </div>
+
+      <div className="mt-4 flex items-center gap-4">
+        <div>
+          <ReactQRCode
+            value={shareLink}
+            size={128}
+            bgColor={isDark ? "#1e2939" : "#fff"}
+            fgColor={isDark ? "#4A5565" : "#000"}
+          />
         </div>
-
-        <div className="mt-4 flex items-center gap-4">
-          <div>
-            <div className="text-sm">Share QR code</div>
-            <ReactQRCode value={shareLink} size={128} />
-          </div>
-          <div className="text-sm text-gray-600 break-all">{shareLink}</div>
-        </div>
+        <div className="text-sm text-gray-600 break-all">{shareLink}</div>
       </div>
     </div>
   );
