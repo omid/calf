@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 @plugin './hero.ts';
@@ -20,6 +18,13 @@
   color-scheme: light dark;
   background-color: #242424;
 
+  /* light theme tokens */
+  --bg: #ffffff;
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --text: #213547;
+  --accent: #3b82f6;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -29,7 +34,6 @@
 #root {
   width: 1280px;
   margin: 0 auto;
-  text-align: center;
 }
 
 body {
@@ -37,17 +41,39 @@ body {
   display: flex;
 }
 
+/* dark theme tokens when class 'dark' is present on root */
+.dark {
+  --bg: #0b1020;
+  --card-bg: #0f1724;
+  --muted: #9ca3af;
+  --text: #e6eef8;
+  --accent: #60a5fa;
+  color-scheme: dark;
+  background-color: var(--bg);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--text);
+    background-color: var(--bg);
   }
   a:hover {
     color: #747bff;
   }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* utility fallbacks for elements that expect white backgrounds */
+.bg-white {
+  background-color: var(--card-bg) !important;
+}
+.text-gray-800 {
+  color: var(--text) !important;
+}
+.text-gray-600 {
+  color: var(--muted) !important;
+}
+.border-gray-400 {
+  border-color: rgba(148, 163, 184, 0.6) !important;
 }
 
 @media (min-width: 640px) {
