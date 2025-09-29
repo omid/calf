@@ -1,5 +1,5 @@
 import AboutModal from "./AboutModal";
-import { useState, useEffect, useRef, useMemo, type Key } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import ReactQRCode from "react-qr-code";
 import Share from "./Share";
 import {
