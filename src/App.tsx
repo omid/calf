@@ -205,8 +205,8 @@ function App() {
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
       <div className={`${aboutOpen ? "overscroll-none" : ""}`}>
-      <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-50 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4">
-        <div className="w-full flex items-start justify-between gap-3 mb-2">
+        <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-50 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4">
+          <div className="w-full flex items-start justify-between gap-3 mb-2">
             <img
               src="assets/logo.avif"
               className="h-20 sm:h-28 mb-2"
@@ -231,338 +231,345 @@ function App() {
                   download an iCal file.
                 </div>
               )}
-          </div>
+            </div>
 
-          <div className="flex items-start">
-            <Button
-              aria-label="toggle-dark"
-              title="Toggle dark / light mode"
-              onPress={() => setIsDark((v) => !v)}
-              className="items-center bg-gray-100 dark:bg-gray-700 p-0 min-w-10"
-            >
-              {isDark ? (
-                <>
-                  <MoonIcon className="h-5 w-5 text-yellow-300" />
-                  <span className="sr-only">Dark</span>
-                </>
-              ) : (
-                <>
-                  <SunIcon className="h-5 w-5 text-yellow-500" />
-                  <span className="sr-only">Light</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        {isSharePage ? (
-          <Share isDark={isDark} />
-        ) : (
-          <>
-            {step === "form" && (
-              <div className="w-full max-w-full sm:max-w-2xl  bg-white rounded shadow p-2 sm:p-4 flex flex-col gap-3 sm:gap-4">
-                <Input
-                  value={form.title}
-                  onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
-                  placeholder="Title"
-                  startContent={
-                    <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />
-                  }
-                  required
-                />
-                <Textarea
-                  value={form.description}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, description: v }))
-                  }
-                  placeholder="Description"
-                  rows={3}
-                />
-                <div className="flex flex-row items-center gap-2">
-                  <div
-                    className="relative flex-1 min-w-0 max-w-[70vw]"
-                    ref={containerRef}
-                  >
-                    <Input
-                      value={form.location}
-                      onValueChange={(v) => {
-                        setForm((f) => ({ ...f, location: v }));
-                        if (!form.isOnline) {
-                          debouncedSearch(String(v));
-                          setShowSuggestions(true);
-                        }
-                      }}
-                      startContent={
-                        <MapPinIcon className="h-5 w-5 text-gray-400" />
-                      }
-                      placeholder={form.isOnline ? "Meeting Link" : "Location"}
-                      type={form.isOnline ? "url" : "text"}
-                      onFocus={() => {
-                        if (!form.isOnline && form.location)
-                          setShowSuggestions(true);
-                      }}
-                    />
-
-                    {showSuggestions && suggestions.length > 0 && (
-                      <ul className="absolute z-100 left-0 right-0 max-h-48 overflow-auto rounded-lg shadow-lg bg-white divide-y border border-gray-400">
-                        {suggestions.map((s) => (
-                          <li
-                            key={s.place_id}
-                            className="border-b-gray-300 dark:border-b-gray-600 px-3 py-2 text-sm text-gray-800 hover:bg-gray-200 hover:dark:bg-gray-700 cursor-pointer text-left"
-                            onMouseDown={(e) => {
-                              // prevent blur before click
-                              e.preventDefault();
-                              setForm((f) => ({
-                                ...f,
-                                location: s.display_name,
-                              }));
-                              setShowSuggestions(false);
-                              setSuggestions([]);
-                            }}
-                          >
-                            {s.display_name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div className="flex items-center flex-shrink-0 ml-2">
-                    <ChipCheckbox
-                      checked={form.isOnline}
-                      onValueChange={(isOnline: boolean) => {
-                        setForm((f) => ({ ...f, isOnline }));
-                        if (isOnline) {
-                          setSuggestions([]);
-                          setShowSuggestions(false);
-                        }
-                      }}
-                      text="Online"
-                      id="online-switch"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col xs:flex-row gap-3">
-                  <div className="pt-1 flex-1 min-w-25 max-w-25">
-                    <ChipCheckbox
-                      checked={form.isAllDay}
-                      onValueChange={(isAllDay: boolean) => {
-                        setForm((f) => ({
-                          ...f,
-                          isAllDay,
-                        }));
-                      }}
-                      text="All day"
-                      id="all-day-switch"
-                    />
-                  </div>
-
-                  <div className="gap-3 flex flex-col flex-auto">
-                    <div className="group flex flex-col items-center xs:flex-row gap-2">
-                      <FixedLabel>Start</FixedLabel>
-                      <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
-                        <I18nProvider locale={locale}>
-                          <DatePicker
-                            className="flex-1 min-w-0"
-                            value={form.sDate}
-                            onChange={onChangeStartDate}
-                          />
-                        </I18nProvider>
-                        {!form.isAllDay && (
-                          <Autocomplete
-                            className="xs:max-w-32 w-full xs:w-32"
-                            startContent={
-                              <ClockIcon className="h-5 w-5 text-gray-400" />
-                            }
-                            allowsCustomValue
-                            isClearable={false}
-                            inputValue={timeOptions[form.sTime]}
-                            selectedKey={form.sTime}
-                            isVirtualized={false}
-                            onSelectionChange={onChangeStartTime}
-                          >
-                            {Object.entries(timeOptions).map(([key, label]) => (
-                              <AutocompleteItem key={key}>
-                                {label}
-                              </AutocompleteItem>
-                            ))}
-                          </Autocomplete>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="group flex flex-col items-center xs:flex-row gap-2">
-                      <FixedLabel>End</FixedLabel>
-                      <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
-                        <I18nProvider locale={locale}>
-                          <DatePicker
-                            className="flex-1 min-w-0"
-                            value={form.eDate}
-                            onChange={(v) =>
-                              setForm((f) => ({ ...f, eDate: v }))
-                            }
-                          />
-                        </I18nProvider>
-                        {!form.isAllDay && (
-                          <Autocomplete
-                            className="xs:max-w-32 w-full xs:w-32"
-                            startContent={
-                              <ClockIcon className="h-5 w-5 text-gray-400" />
-                            }
-                            allowsCustomValue
-                            isVirtualized={false}
-                            isClearable={false}
-                            inputValue={timeOptions[form.eTime]}
-                            selectedKey={form.eTime}
-                            onSelectionChange={onChangeEndTime}
-                          >
-                            {Object.entries(timeOptions).map(([key, label]) => (
-                              <AutocompleteItem key={key}>
-                                {label}
-                              </AutocompleteItem>
-                            ))}
-                          </Autocomplete>
-                        )}
-                      </div>
-                    </div>
-                    {!form.isAllDay && (
-                      <div className="group flex flex-col items-center xs:flex-row gap-2">
-                        <FixedLabel>Time zone</FixedLabel>
-                        <Autocomplete
-                          className="flex-1 min-w-0"
-                          startContent={
-                            <GlobeAltIcon className="h-5 w-5 text-gray-400" />
-                          }
-                          id="timezone"
-                          placeholder="Type to filter time zones"
-                          defaultItems={Intl.supportedValuesOf("timeZone").map(
-                            (tz) => ({ label: tz, value: tz })
-                          )}
-                          defaultSelectedKey={form.timezone}
-                          onSelectionChange={(v) => {
-                            setForm((f) => ({ ...f, timezone: String(v) }));
-                          }}
-                          isClearable={false}
-                        >
-                          {Intl.supportedValuesOf("timeZone").map((tz) => (
-                            <AutocompleteItem
-                              key={tz}
-                              className="text-gray-800 bg-white px-3 py-2 text-sm"
-                            >
-                              {tz}
-                            </AutocompleteItem>
-                          ))}
-                        </Autocomplete>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <CollapsibleSection
-                  title="Password protection (optional)"
-                  startContent={
-                    passwordEnabled ? (
-                      <LockClosedIcon className="h-5 w-5 text-red-400 inline" />
-                    ) : (
-                      <LockOpenIcon className="h-5 w-5 text-gray-400 inline" />
-                    )
-                  }
-                >
-                  <Alert
-                    color="warning"
-                    variant="faded"
-                    title={
-                      <div className="mb-2 font-bold">
-                        Protect your event with a password
-                      </div>
-                    }
-                    className="my-4 text-left"
-                    description={
-                      <div>
-                        If you set a password, your event link will be
-                        encrypted. The event details won't be visible to URL
-                        trackers or third parties.
-                        <br />
-                        Only people with both the link and the password will be
-                        able to open it.
-                      </div>
-                    }
-                  ></Alert>
-
-                  <div className="flex flex-col xs:flex-row gap-3">
-                    <div className="mb-2">
-                      <ChipCheckbox
-                        checked={passwordEnabled}
-                        onValueChange={(val: boolean) =>
-                          setPasswordEnabled(val)
-                        }
-                        text="Enable password"
-                        id="enable-password-switch"
-                      />
-                    </div>
-                    {passwordEnabled && (
-                      <Input
-                        placeholder="Set a password to protect event details"
-                        endContent={
-                          <Button
-                            aria-label="toggle password visibility"
-                            className="min-w-6 w-6 p-0 bg-transparent"
-                            onPress={() => setIsPassVisible(!isPassVisible)}
-                          >
-                            {isPassVisible ? (
-                              <EyeSlashIcon className="text-2xl text-default-400 pointer-events-none" />
-                            ) : (
-                              <EyeIcon className="text-2xl text-default-400 pointer-events-none" />
-                            )}
-                          </Button>
-                        }
-                        type={isPassVisible ? "text" : "password"}
-                        value={form.password}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, password: e.target.value }))
-                        }
-                      />
-                    )}
-                  </div>
-                </CollapsibleSection>
-
-                {formError && (
-                  <div className="text-sm text-red-600">{formError}</div>
-                )}
-                <Button
-                  variant="solid"
-                  color="primary"
-                  size="lg"
-                  className="font-bold"
-                  onPress={onSharePress}
-                  title="Share Event"
-                >
-                  Share Event
-                </Button>
-              </div>
-            )}
-            {step === "share" && (
-              <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4 items-center">
-                <div className="font-semibold">Share this link:</div>
-                {pendingShare ? (
-                  <div>Generating secure link...</div>
+            <div className="flex items-start">
+              <Button
+                aria-label="toggle-dark"
+                title="Toggle dark / light mode"
+                onPress={() => setIsDark((v) => !v)}
+                className="items-center bg-gray-100 dark:bg-gray-700 p-0 min-w-10"
+              >
+                {isDark ? (
+                  <>
+                    <MoonIcon className="h-5 w-5 text-yellow-300" />
+                    <span className="sr-only">Dark</span>
+                  </>
                 ) : (
                   <>
-                    <a
-                      href={shareLink}
-                      className="text-blue-600 underline break-all"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <SunIcon className="h-5 w-5 text-yellow-500" />
+                    <span className="sr-only">Light</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {isSharePage ? (
+            <Share isDark={isDark} />
+          ) : (
+            <>
+              {step === "form" && (
+                <div className="w-full max-w-full sm:max-w-2xl  bg-white rounded shadow p-2 sm:p-4 flex flex-col gap-3 sm:gap-4">
+                  <Input
+                    value={form.title}
+                    onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
+                    placeholder="Title"
+                    startContent={
+                      <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />
+                    }
+                    required
+                  />
+                  <Textarea
+                    value={form.description}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, description: v }))
+                    }
+                    placeholder="Description"
+                    rows={3}
+                  />
+                  <div className="flex flex-row items-center gap-2">
+                    <div
+                      className="relative flex-1 min-w-0 max-w-[70vw]"
+                      ref={containerRef}
                     >
-                      {shareLink}
-                    </a>
-                    <ReactQRCode
-                      value={shareLink}
-                      size={128}
-                      bgColor={isDark ? "#0F1724" : "#fff"}
-                      fgColor={isDark ? "#4A5565" : "#000"}
-                    /></>
+                      <Input
+                        value={form.location}
+                        onValueChange={(v) => {
+                          setForm((f) => ({ ...f, location: v }));
+                          if (!form.isOnline) {
+                            debouncedSearch(String(v));
+                            setShowSuggestions(true);
+                          }
+                        }}
+                        startContent={
+                          <MapPinIcon className="h-5 w-5 text-gray-400" />
+                        }
+                        placeholder={
+                          form.isOnline ? "Meeting Link" : "Location"
+                        }
+                        type={form.isOnline ? "url" : "text"}
+                        onFocus={() => {
+                          if (!form.isOnline && form.location)
+                            setShowSuggestions(true);
+                        }}
+                      />
+
+                      {showSuggestions && suggestions.length > 0 && (
+                        <ul className="absolute z-100 left-0 right-0 max-h-48 overflow-auto rounded-lg shadow-lg bg-white divide-y border border-gray-400">
+                          {suggestions.map((s) => (
+                            <li
+                              key={s.place_id}
+                              className="border-b-gray-300 dark:border-b-gray-600 px-3 py-2 text-sm text-gray-800 hover:bg-gray-200 hover:dark:bg-gray-700 cursor-pointer text-left"
+                              onMouseDown={(e) => {
+                                // prevent blur before click
+                                e.preventDefault();
+                                setForm((f) => ({
+                                  ...f,
+                                  location: s.display_name,
+                                }));
+                                setShowSuggestions(false);
+                                setSuggestions([]);
+                              }}
+                            >
+                              {s.display_name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="flex items-center flex-shrink-0 ml-2">
+                      <ChipCheckbox
+                        checked={form.isOnline}
+                        onValueChange={(isOnline: boolean) => {
+                          setForm((f) => ({ ...f, isOnline }));
+                          if (isOnline) {
+                            setSuggestions([]);
+                            setShowSuggestions(false);
+                          }
+                        }}
+                        text="Online"
+                        id="online-switch"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col xs:flex-row gap-3">
+                    <div className="pt-1 flex-1 min-w-25 max-w-25">
+                      <ChipCheckbox
+                        checked={form.isAllDay}
+                        onValueChange={(isAllDay: boolean) => {
+                          setForm((f) => ({
+                            ...f,
+                            isAllDay,
+                          }));
+                        }}
+                        text="All day"
+                        id="all-day-switch"
+                      />
+                    </div>
+
+                    <div className="gap-3 flex flex-col flex-auto">
+                      <div className="group flex flex-col items-center xs:flex-row gap-2">
+                        <FixedLabel>Start</FixedLabel>
+                        <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
+                          <I18nProvider locale={locale}>
+                            <DatePicker
+                              className="flex-1 min-w-0"
+                              value={form.sDate}
+                              onChange={onChangeStartDate}
+                            />
+                          </I18nProvider>
+                          {!form.isAllDay && (
+                            <Autocomplete
+                              className="xs:max-w-32 w-full xs:w-32"
+                              startContent={
+                                <ClockIcon className="h-5 w-5 text-gray-400" />
+                              }
+                              allowsCustomValue
+                              isClearable={false}
+                              inputValue={timeOptions[form.sTime]}
+                              selectedKey={form.sTime}
+                              isVirtualized={false}
+                              onSelectionChange={onChangeStartTime}
+                            >
+                              {Object.entries(timeOptions).map(
+                                ([key, label]) => (
+                                  <AutocompleteItem key={key}>
+                                    {label}
+                                  </AutocompleteItem>
+                                )
+                              )}
+                            </Autocomplete>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="group flex flex-col items-center xs:flex-row gap-2">
+                        <FixedLabel>End</FixedLabel>
+                        <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
+                          <I18nProvider locale={locale}>
+                            <DatePicker
+                              className="flex-1 min-w-0"
+                              value={form.eDate}
+                              onChange={(v) =>
+                                setForm((f) => ({ ...f, eDate: v }))
+                              }
+                            />
+                          </I18nProvider>
+                          {!form.isAllDay && (
+                            <Autocomplete
+                              className="xs:max-w-32 w-full xs:w-32"
+                              startContent={
+                                <ClockIcon className="h-5 w-5 text-gray-400" />
+                              }
+                              allowsCustomValue
+                              isVirtualized={false}
+                              isClearable={false}
+                              inputValue={timeOptions[form.eTime]}
+                              selectedKey={form.eTime}
+                              onSelectionChange={onChangeEndTime}
+                            >
+                              {Object.entries(timeOptions).map(
+                                ([key, label]) => (
+                                  <AutocompleteItem key={key}>
+                                    {label}
+                                  </AutocompleteItem>
+                                )
+                              )}
+                            </Autocomplete>
+                          )}
+                        </div>
+                      </div>
+                      {!form.isAllDay && (
+                        <div className="group flex flex-col items-center xs:flex-row gap-2">
+                          <FixedLabel>Time Zone</FixedLabel>
+                          <Autocomplete
+                            className="flex-1 min-w-0"
+                            startContent={
+                              <GlobeAltIcon className="h-5 w-5 text-gray-400" />
+                            }
+                            id="timezone"
+                            placeholder="Type to filter time zones"
+                            defaultItems={Intl.supportedValuesOf(
+                              "timeZone"
+                            ).map((tz) => ({ label: tz, value: tz }))}
+                            defaultSelectedKey={form.timezone}
+                            onSelectionChange={(v) => {
+                              setForm((f) => ({ ...f, timezone: String(v) }));
+                            }}
+                            isClearable={false}
+                          >
+                            {Intl.supportedValuesOf("timeZone").map((tz) => (
+                              <AutocompleteItem
+                                key={tz}
+                                className="text-gray-800 bg-white px-3 py-2 text-sm"
+                              >
+                                {tz}
+                              </AutocompleteItem>
+                            ))}
+                          </Autocomplete>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <CollapsibleSection
+                    title="Password protection (optional)"
+                    startContent={
+                      passwordEnabled ? (
+                        <LockClosedIcon className="h-5 w-5 text-red-400 inline" />
+                      ) : (
+                        <LockOpenIcon className="h-5 w-5 text-gray-400 inline" />
+                      )
+                    }
+                  >
+                    <Alert
+                      color="warning"
+                      variant="faded"
+                      title={
+                        <div className="mb-2 font-bold">
+                          Protect your event with a password
+                        </div>
+                      }
+                      className="my-4 text-left"
+                      description={
+                        <div>
+                          If you set a password, your event link will be
+                          encrypted. The event details won't be visible to URL
+                          trackers or third parties.
+                          <br />
+                          Only people with both the link and the password will
+                          be able to open it.
+                        </div>
+                      }
+                    ></Alert>
+
+                    <div className="flex flex-col xs:flex-row gap-3">
+                      <div className="mb-2">
+                        <ChipCheckbox
+                          checked={passwordEnabled}
+                          onValueChange={(val: boolean) =>
+                            setPasswordEnabled(val)
+                          }
+                          text="Enable password"
+                          id="enable-password-switch"
+                        />
+                      </div>
+                      {passwordEnabled && (
+                        <Input
+                          placeholder="Set a password to protect event details"
+                          endContent={
+                            <Button
+                              aria-label="toggle password visibility"
+                              className="min-w-6 w-6 p-0 bg-transparent"
+                              onPress={() => setIsPassVisible(!isPassVisible)}
+                            >
+                              {isPassVisible ? (
+                                <EyeSlashIcon className="text-2xl text-default-400 pointer-events-none" />
+                              ) : (
+                                <EyeIcon className="text-2xl text-default-400 pointer-events-none" />
+                              )}
+                            </Button>
+                          }
+                          type={isPassVisible ? "text" : "password"}
+                          value={form.password}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, password: e.target.value }))
+                          }
+                        />
+                      )}
+                    </div>
+                  </CollapsibleSection>
+
+                  {formError && (
+                    <div className="text-sm text-red-600">{formError}</div>
+                  )}
+                  <Button
+                    variant="solid"
+                    color="primary"
+                    size="lg"
+                    className="font-bold"
+                    onPress={onSharePress}
+                    title="Share Event"
+                  >
+                    Share Event
+                  </Button>
+                </div>
+              )}
+              {step === "share" && (
+                <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4 items-center">
+                  <div className="font-semibold">Share this link:</div>
+                  {pendingShare ? (
+                    <div>Generating secure link...</div>
+                  ) : (
+                    <>
+                      <a
+                        href={shareLink}
+                        className="text-blue-600 underline break-all"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {shareLink}
+                      </a>
+                      <ReactQRCode
+                        value={shareLink}
+                        size={128}
+                        bgColor={isDark ? "#0F1724" : "#fff"}
+                        fgColor={isDark ? "#4A5565" : "#000"}
+                      />
+                    </>
                   )}
                   <Button
                     className="mt-4 bg-gray-200 px-4 py-2 rounded dark:bg-gray-600 dark:text-gray-300"
