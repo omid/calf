@@ -169,9 +169,8 @@ function App() {
     }
   };
 
-  const onChangeStartTime = (timeKey: Key | null) => {
-    if (!timeKey) return;
-    const time = String(timeKey);
+  const onChangeStartTime = (time: string | null) => {
+    if (!time) return;
     setForm((f) => ({ ...f, sTime: time }));
 
     if (!form.eDate || !form.sDate) return;
@@ -195,9 +194,9 @@ function App() {
     }
   };
 
-  const onChangeEndTime = (timeKey: Key | null) => {
-    if (!timeKey) return;
-    setForm((f) => ({ ...f, eTime: String(timeKey) }));
+  const onChangeEndTime = (time: string | null) => {
+    if (!time) return;
+    setForm((f) => ({ ...f, eTime: time }));
   };
 
   const iframeSrc = `counter.html?path=${isSharePage ? sharePath : "/"}`;
@@ -379,10 +378,9 @@ function App() {
                               }
                               allowsCustomValue
                               isClearable={false}
-                              inputValue={timeOptions[form.sTime]}
-                              selectedKey={form.sTime}
+                              defaultSelectedKey={timeOptions[form.sTime]}
                               isVirtualized={false}
-                              onSelectionChange={onChangeStartTime}
+                              onInputChange={onChangeStartTime}
                             >
                               {Object.entries(timeOptions).map(
                                 ([key, label]) => (
@@ -417,9 +415,8 @@ function App() {
                               allowsCustomValue
                               isVirtualized={false}
                               isClearable={false}
-                              inputValue={timeOptions[form.eTime]}
-                              selectedKey={form.eTime}
-                              onSelectionChange={onChangeEndTime}
+                              defaultSelectedKey={timeOptions[form.eTime]}
+                              onInputChange={onChangeEndTime}
                             >
                               {Object.entries(timeOptions).map(
                                 ([key, label]) => (
