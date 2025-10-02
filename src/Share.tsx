@@ -3,9 +3,11 @@ import { generateICal } from "./icalUtils";
 import {
   ArrowDownTrayIcon,
   CalendarDaysIcon,
+  GlobeAltIcon,
   NoSymbolIcon,
 } from "@heroicons/react/16/solid";
 import { Button, Input, Link } from "@heroui/react";
+import { Autocomplete, AutocompleteItem } from "@heroui/react";
 import { useState } from "react";
 import {
   dateFromParts,
@@ -44,6 +46,9 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const [unlockError, setUnlockError] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [protectedEvent, setProtectedEvent] = useState<EventQS | null>(null);
+  const [selectedTz, setSelectedTz] = useState(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
 
   async function handleUnlock() {
     setUnlockError("");
@@ -243,29 +248,59 @@ export default function Share({ isDark }: { isDark: boolean }) {
               {formatDateOnly(startDt)} <br />
               to {formatDateOnly(endDt)} (All day)
             </div>
-          ) : formatDateOnly(startDt) === formatDateOnly(endDt) ? (
-            <>
-              <div className="text-sm text-gray-600">
-                {formatDateOnly(startDt)}
-              </div>
-              <div className="text-sm text-gray-600">
-                {formatInTime(startDt, event.timezone)} to{" "}
-                {formatInTime(endDt, event.timezone)}
-              </div>
-              <div className="text-sm text-gray-600">
-                Time Zone: {tzDisplay}
-              </div>
-            </>
           ) : (
             <>
+              {formatDateOnly(startDt) === formatDateOnly(endDt) ? (
+                <>
+                  <div className="text-sm text-gray-600">
+                    {formatDateOnly(startDt)}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {formatInTime(startDt, selectedTz)} to{" "}
+                    {formatInTime(endDt, selectedTz)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-sm text-gray-600">
+                    Start: {formatInTimezone(startDt, selectedTz)}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    End: {formatInTimezone(endDt, selectedTz)}
+                  </div>
+                </>
+              )}
               <div className="text-sm text-gray-600">
-                Start: {formatInTimezone(startDt, event.timezone)}
+                Original Time Zone: {tzDisplay}
               </div>
-              <div className="text-sm text-gray-600">
-                End: {formatInTimezone(endDt, event.timezone)}
-              </div>
-              <div className="text-sm text-gray-600">
-                Time Zone: {tzDisplay}
+              <div className="flex items-center gap-2 mt-2">
+                <label
+                  htmlFor="tz-autocomplete"
+                  className="text-sm text-gray-600"
+                >
+                  Time Zone:
+                </label>
+                <Autocomplete
+                  className="flex-1 min-w-0"
+                  startContent={
+                    <GlobeAltIcon className="h-5 w-5 text-gray-400" />
+                  }
+                  id="timezone"
+                  selectedKey={selectedTz}
+                  placeholder="Type to filter time zones"
+                  onSelectionChange={(key) => key && setSelectedTz(String(key))}
+                  isClearable={false}
+                  variant="bordered"
+                >
+                  {Intl.supportedValuesOf("timeZone").map((tz) => (
+                    <AutocompleteItem
+                      key={tz}
+                      className="text-gray-800 bg-white px-3 py-2 text-sm"
+                    >
+                      {tz}
+                    </AutocompleteItem>
+                  ))}
+                </Autocomplete>
               </div>
             </>
           )}
