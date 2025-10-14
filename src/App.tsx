@@ -372,13 +372,13 @@ function App() {
                           </I18nProvider>
                           {!form.isAllDay && (
                             <Autocomplete
-                              className="xs:max-w-32 w-full xs:w-32"
+                              className="xs:max-w-34 w-full xs:w-34"
                               startContent={
                                 <ClockIcon className="h-5 w-5 text-gray-400" />
                               }
                               allowsCustomValue
                               isClearable={false}
-                              defaultSelectedKey={timeOptions[form.sTime]}
+                              defaultSelectedKey={form.sTime}
                               isVirtualized={false}
                               onInputChange={onChangeStartTime}
                             >
@@ -408,14 +408,14 @@ function App() {
                           </I18nProvider>
                           {!form.isAllDay && (
                             <Autocomplete
-                              className="xs:max-w-32 w-full xs:w-32"
+                              className="xs:max-w-34 w-full xs:w-34"
                               startContent={
                                 <ClockIcon className="h-5 w-5 text-gray-400" />
                               }
                               allowsCustomValue
                               isVirtualized={false}
                               isClearable={false}
-                              defaultSelectedKey={timeOptions[form.eTime]}
+                              defaultSelectedKey={form.eTime}
                               onInputChange={onChangeEndTime}
                             >
                               {Object.entries(timeOptions).map(

@@ -1,5 +1,6 @@
 import type { EventForm } from "./eventForm";
 import ICAL from "ical.js";
+import { DateTime } from "luxon";
 
 const te = new TextEncoder();
 const td = new TextDecoder();
@@ -195,53 +196,16 @@ export function dateFromParts(
   timeStr: string,
   timeZone: string
 ): Date {
-  // Combine date and time into a "fake" UTC Date (interpreted in local system time)
   const [year, month, day] = dateStr.split("-").map(Number);
   const [hour, minute] =
     timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
 
-  // This is the wall-clock time in the given timeZone.
-  // We need to find the actual UTC instant that represents this time in that zone.
-  const utcTimestamp = Date.UTC(year, month - 1, day, hour, minute);
-  const locale = new Intl.Locale(getUserLocale());
+  const date = DateTime.fromObject(
+    { year, month, day, hour, minute },
+    { zone: timeZone }
+  ).toJSDate();
 
-  // Use Intl.DateTimeFormat to compute the offset for the given timeZone
-  const formatter = new Intl.DateTimeFormat(locale, {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-
-  // Format a date that we *pretend* is UTC and read what the zone says
-  const parts = formatter.formatToParts(new Date(utcTimestamp));
-  const get = (type: string) =>
-    Number(parts.find((p) => p.type === type)?.value);
-
-  const zonedYear = get("year");
-  const zonedMonth = get("month");
-  const zonedDay = get("day");
-  const zonedHour = get("hour");
-  const zonedMinute = get("minute");
-  const zonedSecond = get("second");
-
-  // This gives us what time the UTC timestamp *looks like* in the target zone.
-  // The difference between desired local time and this tells us the offset.
-  const diff =
-    Date.UTC(
-      zonedYear,
-      zonedMonth - 1,
-      zonedDay,
-      zonedHour,
-      zonedMinute,
-      zonedSecond
-    ) - utcTimestamp;
-
-  // Adjust by that difference to get the actual UTC instant of the intended wall-clock time
-  return new Date(utcTimestamp - diff);
+  return date;
 }
 
 export function icalDateFromParts(

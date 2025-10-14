@@ -1,7 +1,7 @@
 {
   "name": "calf",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.3.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,8 +15,10 @@
     "@internationalized/date": "3.9.0",
     "@react-aria/i18n": "^3.12.12",
     "@tailwindcss/vite": "^4.1.13",
+    "@types/luxon": "^3.7.1",
     "framer-motion": "^12.23.13",
     "ical.js": "^2.2.1",
+    "luxon": "^3.7.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-qr-code": "^2.0.18"
