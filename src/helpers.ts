@@ -211,27 +211,54 @@ export function dateFromParts(
 export function icalDateFromParts(
   dateStr: string,
   timeStr: string,
-  location: string
+  tz: string
 ) {
   const [year, month, day] = dateStr.split("-").map(Number);
   const [hour, minute] =
     timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
 
-  const tz = new ICAL.Timezone({ location });
+  const local = DateTime.fromObject(
+    { year, month, day, hour, minute, second: 0, millisecond: 0 },
+    { zone: tz || "UTC" }
+  );
+  const utc = local.toUTC();
 
   return new ICAL.Time(
     {
-      year,
-      month,
-      day,
-      hour,
-      minute,
+      year: utc.year,
+      month: utc.month,
+      day: utc.day,
+      hour: utc.hour,
+      minute: utc.minute,
       isDate: timeStr === "",
     },
-    tz
+    ICAL.Timezone.utcTimezone
   );
 }
 
 export function getUserLocale() {
   return navigator?.languages?.[0] ?? navigator.language ?? "en-US";
 }
+
+export function to24Hour(timeStr: string): string {
+  // Try parsing with 12-hour format first (handles AM/PM)
+  let dt = DateTime.fromFormat(timeStr.trim(), "h:mm a");
+  if (!dt.isValid) {
+    // Fallback: try 24-hour format
+    dt = DateTime.fromFormat(timeStr.trim(), "HH:mm");
+  }
+  if (!dt.isValid) throw new Error("Invalid time format");
+  return dt.toFormat("HH:mm");
+}
+
+export const toLocaleTimeFormat = (timeStr: string): string => {
+  const [hour, minute] = timeStr.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+
+  const locale = new Intl.Locale(getUserLocale());
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "numeric",
+  }).format(date);
+};

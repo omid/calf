@@ -34,6 +34,8 @@ import {
   encryptString,
   timeOptions,
   getUserLocale,
+  to24Hour,
+  toLocaleTimeFormat,
 } from "./helpers";
 import { initialForm } from "./eventForm";
 import { CalendarDate } from "@internationalized/date";
@@ -171,12 +173,13 @@ function App() {
 
   const onChangeStartTime = (time: string | null) => {
     if (!time) return;
-    setForm((f) => ({ ...f, sTime: time }));
-
+    const sTime = to24Hour(time);
+    setForm((f) => ({ ...f, sTime }));
     if (!form.eDate || !form.sDate) return;
 
-    const startDt = new Date(form.sDate.toString() + " " + time);
+    const startDt = new Date(form.sDate.toString() + " " + sTime);
     const endDt = new Date(form.eDate.toString() + " " + form.eTime);
+
     if (endDt <= startDt) {
       // adjust end time to be 1 hour after start time
       const newEndDt = new Date(startDt.getTime() + 60 * 60 * 1000);
@@ -196,7 +199,8 @@ function App() {
 
   const onChangeEndTime = (time: string | null) => {
     if (!time) return;
-    setForm((f) => ({ ...f, eTime: time }));
+    const eTime = to24Hour(time);
+    setForm((f) => ({ ...f, eTime }));
   };
 
   const iframeSrc = `counter.html?path=${isSharePage ? sharePath : "/"}`;
@@ -416,6 +420,7 @@ function App() {
                               isVirtualized={false}
                               isClearable={false}
                               defaultSelectedKey={form.eTime}
+                              inputValue={toLocaleTimeFormat(form.eTime)}
                               onInputChange={onChangeEndTime}
                             >
                               {Object.entries(timeOptions).map(

@@ -195,7 +195,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
 
   const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${sanitizeDate(
     startStr
-  )}/${Number(sanitizeDate(endStr)) + 1}`;
+  )}/${sanitizeDate(endStr)}`;
 
   const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
     event.isAllDay ? "&allday=true" : ""
