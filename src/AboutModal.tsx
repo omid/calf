@@ -3,6 +3,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/16/solid";
 import { Button } from "@heroui/react";
+import { useMemo } from "react";
 // import { useCallback } from "react";
 
 type Props = {
@@ -18,10 +19,10 @@ export default function AboutModal({
   username = "omid",
   repo = "calf",
 }: Props) {
-  // useCallback(
-  //   () => (document.body.style.overflow = isOpen ? "hidden" : "auto"),
-  //   [isOpen]
-  // );
+  useMemo(
+    () => (document.body.style.overflow = isOpen ? "hidden" : "auto"),
+    [isOpen]
+  );
 
   if (!isOpen) return null;
 
