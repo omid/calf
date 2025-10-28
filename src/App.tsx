@@ -2,16 +2,7 @@ import AboutModal from "./AboutModal";
 import { useState, useEffect, useRef, useMemo } from "react";
 import ReactQRCode from "react-qr-code";
 import Share from "./Share";
-import {
-  Button,
-  Input,
-  Textarea,
-  DatePicker,
-  Autocomplete,
-  AutocompleteItem,
-  Link,
-  Alert,
-} from "@heroui/react";
+import { Button, Input, Textarea, DatePicker, Autocomplete, AutocompleteItem, Link, Alert } from "@heroui/react";
 import { searchPlaces, debounce } from "./nominatim";
 import type { NominatimPlace } from "./nominatim";
 import {
@@ -40,6 +31,8 @@ import {
 import { initialForm } from "./eventForm";
 import { CalendarDate } from "@internationalized/date";
 import { I18nProvider } from "@react-aria/i18n";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { LinkIcon } from "@heroicons/react/24/solid";
 
 const sharePath = "/share";
 
@@ -64,7 +57,7 @@ function App() {
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof window !== "undefined" && window.matchMedia
       ? window.matchMedia("(prefers-color-scheme: dark)").matches
-      : false
+      : false,
   );
   const [shareLink, setShareLink] = useState<string>("");
   // needed to trigger async share link generation before rendering share step
@@ -97,7 +90,7 @@ function App() {
           setSuggestions([]);
         }
       }),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -114,9 +107,7 @@ function App() {
   const onSharePress = async () => {
     // validate required fields: title, sDate, endDate
     if (!form.title.trim() || !form.sDate || !form.eDate) {
-      setFormError(
-        "Title, Start date and End date are required to create an event."
-      );
+      setFormError("Title, Start date and End date are required to create an event.");
       return;
     }
     // validate start < end
@@ -143,9 +134,7 @@ function App() {
       try {
         const serializedParams = paramsSerializer(params);
         const cipher = await encryptString(serializedParams, form.password);
-        setShareLink(
-          `${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(cipher)}`
-        );
+        setShareLink(`${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(cipher)}`);
       } finally {
         setPendingShare(false);
         setStep("share");
@@ -155,7 +144,7 @@ function App() {
       const stringParams: Record<string, string> = Object.fromEntries(
         Object.entries(params)
           .filter(([, v]) => v !== undefined)
-          .map(([k, v]) => [k, String(v)])
+          .map(([k, v]) => [k, String(v)]),
       );
       const urlParams = new URLSearchParams(stringParams);
       setShareLink(`${origin}${urlPrefix}${sharePath}?${urlParams.toString()}`);
@@ -183,16 +172,10 @@ function App() {
     if (endDt <= startDt) {
       // adjust end time to be 1 hour after start time
       const newEndDt = new Date(startDt.getTime() + 60 * 60 * 1000);
-      const eDate = new CalendarDate(
-        newEndDt.getFullYear(),
-        newEndDt.getMonth() + 1,
-        newEndDt.getDate()
-      );
+      const eDate = new CalendarDate(newEndDt.getFullYear(), newEndDt.getMonth() + 1, newEndDt.getDate());
       const h = newEndDt.getHours();
       const m = newEndDt.getMinutes();
-      const eTime = `${h.toString().padStart(2, "0")}:${m
-        .toString()
-        .padStart(2, "0")}`;
+      const eTime = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
       setForm((f) => ({ ...f, eDate, eTime }));
     }
   };
@@ -210,11 +193,7 @@ function App() {
       <div className={`${aboutOpen ? "overscroll-none" : ""}`}>
         <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-50 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4">
           <div className="w-full flex items-start justify-between gap-3 mb-2">
-            <img
-              src="assets/logo.avif"
-              className="h-20 sm:h-28 mb-2"
-              alt="Calf"
-            />
+            <img src="assets/logo.avif" className="h-20 sm:h-28 mb-2" alt="Calf" />
             <div className="text-left flex flex-col justify-center">
               <Link
                 href={urlPrefix + "/"}
@@ -227,33 +206,39 @@ function App() {
               </div>
               {!isSharePage && (
                 <div className="mb-6 text-gray-600 max-w-full hidden xs:block sm:max-w-2xl text-sm sm:text-base">
-                  Fill in the details below to generate a shareable calendar
-                  event link.
+                  Fill in the details below to generate a shareable calendar event link.
                   <br />
-                  Anyone with the link can add the event to their calendar or
-                  download an iCal file.
+                  Anyone with the link can add the event to their calendar or download an iCal file.
                 </div>
               )}
             </div>
 
-            <div className="flex items-start">
+            <div className="flex items-start flex-col xs:flex-row">
               <Button
                 aria-label="toggle-dark"
                 title="Toggle dark / light mode"
                 onPress={() => setIsDark((v) => !v)}
-                className="items-center bg-gray-100 dark:bg-gray-700 p-0 min-w-10"
+                className=" bg-gray-200 dark:bg-gray-700 p-0 min-w-8 h-8"
               >
                 {isDark ? (
                   <>
-                    <MoonIcon className="h-5 w-5 text-yellow-300" />
+                    <MoonIcon className="h-4 w-4 text-yellow-300" />
                     <span className="sr-only">Dark</span>
                   </>
                 ) : (
                   <>
-                    <SunIcon className="h-5 w-5 text-yellow-500" />
+                    <SunIcon className="h-4 w-4 text-yellow-600" />
                     <span className="sr-only">Light</span>
                   </>
                 )}
+              </Button>
+              <Button
+                aria-label="toggle-dark"
+                title="Toggle dark / light mode"
+                onPress={() => setAboutOpen(true)}
+                className=" bg-gray-200 dark:bg-gray-700 p-0 min-w-8 xs:ml-2 ml-0 xs:mt-0 mt-2 h-8"
+              >
+                <InformationCircleIcon className={`h-4 w-4 ${isDark ? "text-yellow-300" : "text-yellow-600"}`} />
               </Button>
             </div>
           </div>
@@ -268,24 +253,32 @@ function App() {
                     value={form.title}
                     onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
                     placeholder="Title"
-                    startContent={
-                      <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />
-                    }
+                    startContent={<ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />}
                     required
                   />
                   <Textarea
                     value={form.description}
-                    onValueChange={(v) =>
-                      setForm((f) => ({ ...f, description: v }))
-                    }
+                    onValueChange={(v) => setForm((f) => ({ ...f, description: v }))}
                     placeholder="Description"
                     rows={3}
                   />
                   <div className="flex flex-row items-center gap-2">
-                    <div
-                      className="relative flex-1 min-w-0 max-w-[70vw]"
-                      ref={containerRef}
-                    >
+                    <div className="flex items-center flex-shrink-0 mr-1">
+                      <ChipCheckbox
+                        checked={form.isOnline}
+                        onValueChange={(isOnline: boolean) => {
+                          setForm((f) => ({ ...f, isOnline }));
+                          if (isOnline) {
+                            setSuggestions([]);
+                            setShowSuggestions(false);
+                          }
+                        }}
+                        text="Link"
+                        id="online-switch"
+                      />
+                    </div>
+
+                    <div className="relative flex-1 min-w-0 max-w-[70vw]" ref={containerRef}>
                       <Input
                         value={form.location}
                         onValueChange={(v) => {
@@ -296,15 +289,16 @@ function App() {
                           }
                         }}
                         startContent={
-                          <MapPinIcon className="h-5 w-5 text-gray-400" />
+                          form.isOnline ? (
+                            <LinkIcon className="h-5 w-5 text-gray-400" />
+                          ) : (
+                            <MapPinIcon className="h-5 w-5 text-gray-400" />
+                          )
                         }
-                        placeholder={
-                          form.isOnline ? "Meeting Link" : "Location"
-                        }
+                        placeholder={form.isOnline ? "Meeting Link" : "Meeting Location"}
                         type={form.isOnline ? "url" : "text"}
                         onFocus={() => {
-                          if (!form.isOnline && form.location)
-                            setShowSuggestions(true);
+                          if (!form.isOnline && form.location) setShowSuggestions(true);
                         }}
                       />
 
@@ -331,21 +325,6 @@ function App() {
                         </ul>
                       )}
                     </div>
-
-                    <div className="flex items-center flex-shrink-0 ml-2">
-                      <ChipCheckbox
-                        checked={form.isOnline}
-                        onValueChange={(isOnline: boolean) => {
-                          setForm((f) => ({ ...f, isOnline }));
-                          if (isOnline) {
-                            setSuggestions([]);
-                            setShowSuggestions(false);
-                          }
-                        }}
-                        text="Online"
-                        id="online-switch"
-                      />
-                    </div>
                   </div>
 
                   <div className="flex flex-col xs:flex-row gap-3">
@@ -366,33 +345,23 @@ function App() {
                     <div className="gap-3 flex flex-col flex-auto">
                       <div className="group flex flex-col items-center xs:flex-row gap-2">
                         <FixedLabel>Start</FixedLabel>
-                        <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
+                        <div className="flex flex-1 w-full flex-col 2xs:flex-row gap-2">
                           <I18nProvider locale={locale}>
-                            <DatePicker
-                              className="flex-1 min-w-0"
-                              value={form.sDate}
-                              onChange={onChangeStartDate}
-                            />
+                            <DatePicker className="flex-1 min-w-0" value={form.sDate} onChange={onChangeStartDate} />
                           </I18nProvider>
                           {!form.isAllDay && (
                             <Autocomplete
-                              className="xs:max-w-34 w-full xs:w-34"
-                              startContent={
-                                <ClockIcon className="h-5 w-5 text-gray-400" />
-                              }
+                              className="xs:max-w-34 w-full 2xs:w-34"
+                              startContent={<ClockIcon className="h-5 w-5 text-gray-400" />}
                               allowsCustomValue
                               isClearable={false}
                               defaultSelectedKey={form.sTime}
                               isVirtualized={false}
                               onInputChange={onChangeStartTime}
                             >
-                              {Object.entries(timeOptions).map(
-                                ([key, label]) => (
-                                  <AutocompleteItem key={key}>
-                                    {label}
-                                  </AutocompleteItem>
-                                )
-                              )}
+                              {Object.entries(timeOptions).map(([key, label]) => (
+                                <AutocompleteItem key={key}>{label}</AutocompleteItem>
+                              ))}
                             </Autocomplete>
                           )}
                         </div>
@@ -400,22 +369,18 @@ function App() {
 
                       <div className="group flex flex-col items-center xs:flex-row gap-2">
                         <FixedLabel>End</FixedLabel>
-                        <div className="flex flex-1 w-full flex-col xs:flex-row gap-2">
+                        <div className="flex flex-1 w-full flex-col 2xs:flex-row gap-2">
                           <I18nProvider locale={locale}>
                             <DatePicker
                               className="flex-1 min-w-0"
                               value={form.eDate}
-                              onChange={(v) =>
-                                setForm((f) => ({ ...f, eDate: v }))
-                              }
+                              onChange={(v) => setForm((f) => ({ ...f, eDate: v }))}
                             />
                           </I18nProvider>
                           {!form.isAllDay && (
                             <Autocomplete
-                              className="xs:max-w-34 w-full xs:w-34"
-                              startContent={
-                                <ClockIcon className="h-5 w-5 text-gray-400" />
-                              }
+                              className="xs:max-w-34 w-full 2xs:w-34"
+                              startContent={<ClockIcon className="h-5 w-5 text-gray-400" />}
                               allowsCustomValue
                               isVirtualized={false}
                               isClearable={false}
@@ -423,13 +388,9 @@ function App() {
                               inputValue={toLocaleTimeFormat(form.eTime)}
                               onInputChange={onChangeEndTime}
                             >
-                              {Object.entries(timeOptions).map(
-                                ([key, label]) => (
-                                  <AutocompleteItem key={key}>
-                                    {label}
-                                  </AutocompleteItem>
-                                )
-                              )}
+                              {Object.entries(timeOptions).map(([key, label]) => (
+                                <AutocompleteItem key={key}>{label}</AutocompleteItem>
+                              ))}
                             </Autocomplete>
                           )}
                         </div>
@@ -439,14 +400,10 @@ function App() {
                           <FixedLabel>Time Zone</FixedLabel>
                           <Autocomplete
                             className="flex-1 min-w-0"
-                            startContent={
-                              <GlobeAltIcon className="h-5 w-5 text-gray-400" />
-                            }
+                            startContent={<GlobeAltIcon className="h-5 w-5 text-gray-400" />}
                             id="timezone"
                             placeholder="Type to filter time zones"
-                            defaultItems={Intl.supportedValuesOf(
-                              "timeZone"
-                            ).map((tz) => ({ label: tz, value: tz }))}
+                            defaultItems={Intl.supportedValuesOf("timeZone").map((tz) => ({ label: tz, value: tz }))}
                             defaultSelectedKey={form.timezone}
                             onSelectionChange={(v) => {
                               setForm((f) => ({ ...f, timezone: String(v) }));
@@ -454,10 +411,7 @@ function App() {
                             isClearable={false}
                           >
                             {Intl.supportedValuesOf("timeZone").map((tz) => (
-                              <AutocompleteItem
-                                key={tz}
-                                className="text-gray-800 bg-white px-3 py-2 text-sm"
-                              >
+                              <AutocompleteItem key={tz} className="text-gray-800 bg-white px-3 py-2 text-sm">
                                 {tz}
                               </AutocompleteItem>
                             ))}
@@ -480,20 +434,14 @@ function App() {
                     <Alert
                       color="warning"
                       variant="faded"
-                      title={
-                        <div className="mb-2 font-bold">
-                          Protect your event with a password
-                        </div>
-                      }
+                      title={<div className="mb-2 font-bold">Protect your event with a password</div>}
                       className="my-4 text-left"
                       description={
                         <div>
-                          If you set a password, your event link will be
-                          encrypted. The event details won't be visible to URL
-                          trackers or third parties.
+                          If you set a password, your event link will be encrypted. The event details won't be visible
+                          to URL trackers or third parties.
                           <br />
-                          Only people with both the link and the password will
-                          be able to open it.
+                          Only people with both the link and the password will be able to open it.
                         </div>
                       }
                     ></Alert>
@@ -502,9 +450,7 @@ function App() {
                       <div className="mb-2">
                         <ChipCheckbox
                           checked={passwordEnabled}
-                          onValueChange={(val: boolean) =>
-                            setPasswordEnabled(val)
-                          }
+                          onValueChange={(val: boolean) => setPasswordEnabled(val)}
                           text="Enable password"
                           id="enable-password-switch"
                         />
@@ -527,17 +473,13 @@ function App() {
                           }
                           type={isPassVisible ? "text" : "password"}
                           value={form.password}
-                          onChange={(e) =>
-                            setForm((f) => ({ ...f, password: e.target.value }))
-                          }
+                          onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                         />
                       )}
                     </div>
                   </CollapsibleSection>
 
-                  {formError && (
-                    <div className="text-sm text-red-600">{formError}</div>
-                  )}
+                  {formError && <div className="text-sm text-red-600">{formError}</div>}
                   <Button
                     variant="solid"
                     color="primary"
@@ -584,14 +526,6 @@ function App() {
             </>
           )}
         </div>
-        <footer className="mt-10 w-full max-w-3xl text-center text-sm hover:text-gray-600">
-          <Button
-            className="cursor-pointer rounded-lg border px-3 py-2 bg-gray-500 hover:bg-gray-600 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-500"
-            onPress={() => setAboutOpen(true)}
-          >
-            About &amp; Disclaimer
-          </Button>
-        </footer>
       </div>
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
       <iframe src={iframeSrc} height="0" width="0"></iframe>

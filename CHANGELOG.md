@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.3.2] - 2025-10-28
+
+- Move About button from footer to top-right
+- Change "Online" toggle label to "Link". So it basically means people can type any link, for example google maps link instead of typing the address
+- Move the "Link" toggle to left, easier to spot and meaningful decision order
+
 ## [0.3.1] - 2025-10-14
 
 - Fix some bugs

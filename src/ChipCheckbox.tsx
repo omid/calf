@@ -31,122 +31,119 @@ type ChipCheckboxProps = Omit<
   onChange?: React.ChangeEventHandler<HTMLInputElement>;
 };
 
-const ChipCheckbox = React.forwardRef<HTMLInputElement, ChipCheckboxProps>(
-  (props, ref) => {
-    const {
-      // extra
-      text = { on: "Enabled", off: "Disabled" },
-      icon,
-      classNames,
+const ChipCheckbox = React.forwardRef<HTMLInputElement, ChipCheckboxProps>((props, ref) => {
+  const {
+    // extra
+    text = { on: "Enabled", off: "Disabled" },
+    icon,
+    classNames,
 
-      // control (HeroUI)
-      isSelected,
-      defaultSelected,
-      onValueChange,
+    // control (HeroUI)
+    isSelected,
+    defaultSelected,
+    onValueChange,
 
-      // accessibility / state
-      isDisabled,
-      isReadOnly,
+    // accessibility / state
+    isDisabled,
+    isReadOnly,
 
-      // native input listeners/attrs
-      onChange: onInputChange,
-      disabled,
-      readOnly,
-      name,
-      value,
-      autoFocus,
-      required,
-      id,
+    // native input listeners/attrs
+    onChange: onInputChange,
+    disabled,
+    readOnly,
+    name,
+    value,
+    autoFocus,
+    required,
+    id,
 
-      // everything else goes to the hidden input (NOT to the hook)
-      ...restInputProps
-    } = props;
+    // everything else goes to the hidden input (NOT to the hook)
+    ...restInputProps
+  } = props;
 
-    const coercedValue = value == null ? undefined : String(value);
+  const coercedValue = value == null ? undefined : String(value);
 
-    // Only pass the props the hook expects (avoid DOM props like className/color/etc.)
-    const {
-      isSelected: selected,
-      getBaseProps,
-      getLabelProps,
-      getInputProps,
-    } = useCheckbox({
-      isSelected,
-      defaultSelected,
-      onValueChange, // (next: boolean) => void
-      isDisabled: isDisabled ?? disabled,
-      isReadOnly: isReadOnly ?? readOnly,
-      name,
-      value: coercedValue,
-      autoFocus,
-    });
+  // Only pass the props the hook expects (avoid DOM props like className/color/etc.)
+  const {
+    isSelected: selected,
+    getBaseProps,
+    getLabelProps,
+    getInputProps,
+  } = useCheckbox({
+    isSelected,
+    defaultSelected,
+    onValueChange, // (next: boolean) => void
+    isDisabled: isDisabled ?? disabled,
+    isReadOnly: isReadOnly ?? readOnly,
+    name,
+    value: coercedValue,
+    autoFocus,
+  });
 
-    const checkbox = tv({
-      slots: {
-        base: "border-default hover:bg-default-200 transition-colors",
-        content: "text-default-500",
-      },
-      variants: {
-        isSelected: {
-          true: {
-            base: "border-[#e3b344] bg-[#e3b344] hover:bg-[#e3b344]-500 hover:border-[#e3b344]-500",
-            content: "text-white pl-1",
-          },
+  const checkbox = tv({
+    slots: {
+      base: "border-default hover:bg-default-200 transition-colors rounded-xl",
+      content: "text-default-500",
+    },
+    variants: {
+      isSelected: {
+        true: {
+          base: "border-[#e3b344] bg-[#e3b344] hover:bg-[#e3b344]-500 hover:border-[#e3b344]-500",
+          content: "text-white pl-1",
         },
       },
-    });
+    },
+  });
 
-    const styles = checkbox({ isSelected: selected });
+  const styles = checkbox({ isSelected: selected });
 
-    // Merge the hook's onChange with any user-provided native onChange
-    const inputFromHook = getInputProps();
-    const mergedOnChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-      inputFromHook.onChange?.(e);
-      onInputChange?.(e);
-    };
+  // Merge the hook's onChange with any user-provided native onChange
+  const inputFromHook = getInputProps();
+  const mergedOnChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    inputFromHook.onChange?.(e);
+    onInputChange?.(e);
+  };
 
-    const labelText =
-      typeof text === "string" ? text : selected ? text.on : text.off;
+  const labelText = typeof text === "string" ? text : selected ? text.on : text.off;
 
-    return (
-      <label {...getBaseProps()}>
-        <VisuallyHidden>
-          <input
-            ref={ref}
-            id={id}
-            {...inputFromHook}
-            onChange={mergedOnChange}
-            // safe native attrs that won't fight the hook
-            name={name}
-            value={coercedValue}
-            disabled={isDisabled ?? disabled}
-            readOnly={isReadOnly ?? readOnly}
-            required={required}
-            autoFocus={autoFocus}
-            {...restInputProps}
-          />
-        </VisuallyHidden>
+  return (
+    <label {...getBaseProps()}>
+      <VisuallyHidden>
+        <input
+          ref={ref}
+          id={id}
+          {...inputFromHook}
+          onChange={mergedOnChange}
+          // safe native attrs that won't fight the hook
+          name={name}
+          value={coercedValue}
+          disabled={isDisabled ?? disabled}
+          readOnly={isReadOnly ?? readOnly}
+          required={required}
+          autoFocus={autoFocus}
+          {...restInputProps}
+        />
+      </VisuallyHidden>
 
-        <Chip
-          classNames={{
-            base: `${styles.base()} ${classNames?.base ?? ""}`,
-            content: `${styles.content()} ${classNames?.content ?? ""}`,
-          }}
-          startContent={
-            selected ? (
-              icon ?? <CheckIcon className="ml-1 h-4 w-4 text-white" />
-            ) : (
-              <XMarkIcon className="ml-1 h-4 w-4 text-gray-400" />
-            )
-          }
-          variant="faded"
-          {...getLabelProps()}
-        >
-          {labelText}
-        </Chip>
-      </label>
-    );
-  }
-);
+      <Chip
+        classNames={{
+          base: `${styles.base()} ${classNames?.base ?? ""}`,
+          content: `${styles.content()} ${classNames?.content ?? ""}`,
+        }}
+        startContent={
+          selected ? (
+            (icon ?? <CheckIcon className="ml-1 h-4 w-4 text-white" />)
+          ) : (
+            <XMarkIcon className="ml-1 h-4 w-4 text-gray-400" />
+          )
+        }
+        variant="faded"
+        {...getLabelProps()}
+      >
+        {labelText}
+      </Chip>
+    </label>
+  );
+});
 
 export default ChipCheckbox;
