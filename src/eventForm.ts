@@ -9,7 +9,6 @@ export type EventForm = {
   eDate: CalendarDate | null;
   eTime: string;
   timezone: string;
-  isOnline: boolean;
   isAllDay: boolean;
   password: string;
 };
@@ -23,7 +22,6 @@ export type EventQS = {
   eDate: string;
   eTime: string;
   timezone: string;
-  isOnline: boolean;
   isAllDay: boolean;
 };
 
@@ -66,7 +64,6 @@ export const initialForm: EventForm = {
   eDate: today(getLocalTimeZone()),
   eTime: nextHourTime(),
   timezone: getLocalTimeZone(),
-  isOnline: false,
   isAllDay: false,
   password: "",
 };

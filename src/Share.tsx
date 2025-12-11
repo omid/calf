@@ -1,20 +1,10 @@
 import ReactQRCode from "react-qr-code";
 import { generateICal } from "./icalUtils";
-import {
-  ArrowDownTrayIcon,
-  CalendarDaysIcon,
-  GlobeAltIcon,
-  NoSymbolIcon,
-} from "@heroicons/react/16/solid";
+import { ArrowDownTrayIcon, CalendarDaysIcon, GlobeAltIcon, NoSymbolIcon } from "@heroicons/react/16/solid";
 import { Button, Input, Link } from "@heroui/react";
 import { Autocomplete, AutocompleteItem } from "@heroui/react";
 import { useState } from "react";
-import {
-  dateFromParts,
-  decryptString,
-  getUserLocale,
-  paramsDeserializer,
-} from "./helpers";
+import { dateFromParts, decryptString, getUserLocale, isLink, paramsDeserializer } from "./helpers";
 import type { EventQS } from "./eventForm";
 
 function getShareUnlockState() {
@@ -35,7 +25,6 @@ function parseStandardParams(): EventQS {
     eDate: params.get("ed") || "",
     eTime: params.get("et") || "",
     timezone: params.get("tz") || "",
-    isOnline: typeof params.get("o") === "string",
     isAllDay: typeof params.get("a") === "string",
   };
 }
@@ -46,9 +35,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const [unlockError, setUnlockError] = useState("");
   const [unlocked, setUnlocked] = useState(false);
   const [protectedEvent, setProtectedEvent] = useState<EventQS | null>(null);
-  const [selectedTz, setSelectedTz] = useState(
-    Intl.DateTimeFormat().resolvedOptions().timeZone
-  );
+  const [selectedTz, setSelectedTz] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   async function handleUnlock() {
     setUnlockError("");
@@ -65,14 +52,11 @@ export default function Share({ isDark }: { isDark: boolean }) {
         eDate: data.ed ?? "",
         eTime: data.et ?? "",
         timezone: data.tz ?? "",
-        isOnline: data.o === "1",
         isAllDay: data.a === "1",
       });
       setUnlocked(true);
     } catch {
-      setUnlockError(
-        "Unlock failed, either link is wrongly copied or password is wrong"
-      );
+      setUnlockError("Unlock failed, either link is wrongly copied or password is wrong");
     }
   }
 
@@ -87,8 +71,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
               Protected event
             </div>
             <div className="text-sm mb-1 text-slate-700 dark:text-slate-300">
-              This event is password-protected. Enter password to show event
-              details.
+              This event is password-protected. Enter password to show event details.
             </div>
             <Input
               type="password"
@@ -97,9 +80,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {unlockError && (
-              <div className="text-red-600 text-sm">{unlockError}</div>
-            )}
+            {unlockError && <div className="text-red-600 text-sm">{unlockError}</div>}
             <Button
               className="w-full bg-blue-600 text-white font-medium rounded py-2 px-3 hover:bg-blue-700 mt-2"
               onPress={handleUnlock}
@@ -116,11 +97,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const event = protectedEvent || parseStandardParams();
 
   const startDt = dateFromParts(event.sDate, event.sTime, event.timezone);
-  const endDt = dateFromParts(
-    event.eDate || event.sDate,
-    event.eTime || event.sTime,
-    event.timezone
-  );
+  const endDt = dateFromParts(event.eDate || event.sDate, event.eTime || event.sTime, event.timezone);
 
   const tzDisplay = (() => {
     if (event.timezone) return event.timezone;
@@ -185,8 +162,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const icalUrl = URL.createObjectURL(icalBlob);
   const shareLink = window.location.href;
 
-  const sanitizeDate = (d: string) =>
-    d.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const sanitizeDate = (d: string) => d.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const startStr = event.isAllDay ? event.sDate : startDt.toISOString();
   const endStr = event.isAllDay ? event.eDate : endDt.toISOString();
   const details = encodeURIComponent(event.description);
@@ -194,7 +170,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const location = encodeURIComponent(event.location);
 
   const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${sanitizeDate(
-    startStr
+    startStr,
   )}/${sanitizeDate(endStr)}`;
 
   const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
@@ -231,7 +207,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
               Location:{" "}
               <Link
                 href={
-                  event.isOnline
+                  isLink(event.location)
                     ? event.location
                     : `https://www.google.com/maps/search/?api=1&query=${location}`
                 }
@@ -252,39 +228,25 @@ export default function Share({ isDark }: { isDark: boolean }) {
             <>
               {formatDateOnly(startDt) === formatDateOnly(endDt) ? (
                 <>
+                  <div className="text-sm text-gray-600">{formatDateOnly(startDt)}</div>
                   <div className="text-sm text-gray-600">
-                    {formatDateOnly(startDt)}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {formatInTime(startDt, selectedTz)} to{" "}
-                    {formatInTime(endDt, selectedTz)}
+                    {formatInTime(startDt, selectedTz)} to {formatInTime(endDt, selectedTz)}
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="text-sm text-gray-600">
-                    Start: {formatInTimezone(startDt, selectedTz)}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    End: {formatInTimezone(endDt, selectedTz)}
-                  </div>
+                  <div className="text-sm text-gray-600">Start: {formatInTimezone(startDt, selectedTz)}</div>
+                  <div className="text-sm text-gray-600">End: {formatInTimezone(endDt, selectedTz)}</div>
                 </>
               )}
-              <div className="text-sm text-gray-600">
-                Original Time Zone: {tzDisplay}
-              </div>
+              <div className="text-sm text-gray-600">Original Time Zone: {tzDisplay}</div>
               <div className="flex items-center gap-2 mt-2">
-                <label
-                  htmlFor="tz-autocomplete"
-                  className="text-sm text-gray-600"
-                >
+                <label htmlFor="tz-autocomplete" className="text-sm text-gray-600">
                   Time Zone:
                 </label>
                 <Autocomplete
                   className="flex-1 min-w-0"
-                  startContent={
-                    <GlobeAltIcon className="h-5 w-5 text-gray-400" />
-                  }
+                  startContent={<GlobeAltIcon className="h-5 w-5 text-gray-400" />}
                   id="timezone"
                   selectedKey={selectedTz}
                   placeholder="Type to filter time zones"
@@ -293,10 +255,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
                   variant="bordered"
                 >
                   {Intl.supportedValuesOf("timeZone").map((tz) => (
-                    <AutocompleteItem
-                      key={tz}
-                      className="text-gray-800 bg-white px-3 py-2 text-sm"
-                    >
+                    <AutocompleteItem key={tz} className="text-gray-800 bg-white px-3 py-2 text-sm">
                       {tz}
                     </AutocompleteItem>
                   ))}
@@ -318,11 +277,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
           variant="ghost"
           aria-label="Add to Google Calendar"
         >
-          <img
-            src="assets/google-calendar.avif"
-            alt="Google Calendar"
-            className="w-5 h-5"
-          />
+          <img src="assets/google-calendar.avif" alt="Google Calendar" className="w-5 h-5" />
           Google Calendar
         </Button>
 
