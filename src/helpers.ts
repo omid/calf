@@ -17,14 +17,10 @@ const b64url = {
   encode(bytes: Uint8Array): string {
     let bin = "";
     for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
-    return btoa(bin)
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/g, "");
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   },
   decode(s: string): Uint8Array {
-    const b64 =
-      s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
+    const b64 = s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4);
     const bin = atob(b64);
     const out = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -32,17 +28,13 @@ const b64url = {
   },
 };
 
-async function deriveKey(
-  passkey: string,
-  saltU8: Uint8Array,
-  iterations = 250_000
-) {
+async function deriveKey(passkey: string, saltU8: Uint8Array, iterations = 250_000) {
   const baseKey = await crypto.subtle.importKey(
     "raw",
     toAB(te.encode(passkey)), // force ArrayBuffer
     { name: "PBKDF2" },
     false,
-    ["deriveKey"]
+    ["deriveKey"],
   );
 
   return crypto.subtle.deriveKey(
@@ -50,15 +42,12 @@ async function deriveKey(
     baseKey,
     { name: "AES-GCM", length: 256 },
     false,
-    ["encrypt", "decrypt"]
+    ["encrypt", "decrypt"],
   );
 }
 
 /** Encrypt -> v1.<salt>.<iv>.<iter36>.<ct> (all base64url, query-safe) */
-export async function encryptString(
-  plaintext: string,
-  passkey: string
-): Promise<string> {
+export async function encryptString(plaintext: string, passkey: string): Promise<string> {
   if (!crypto?.subtle) throw new Error("Web Crypto API not available.");
 
   const salt = crypto.getRandomValues(new Uint8Array(16)); // 128-bit
@@ -70,7 +59,7 @@ export async function encryptString(
   const ctBuf = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: toAB(iv) }, // ArrayBuffer
     key,
-    toAB(te.encode(plaintext)) // ArrayBuffer
+    toAB(te.encode(plaintext)), // ArrayBuffer
   );
 
   return [
@@ -83,22 +72,17 @@ export async function encryptString(
 }
 
 /** Decrypt string created by encryptString */
-export async function decryptString(
-  payload: string,
-  passkey: string
-): Promise<string> {
+export async function decryptString(payload: string, passkey: string): Promise<string> {
   if (!crypto?.subtle) throw new Error("Web Crypto API not available.");
 
   const parts = payload.split(".");
-  if (parts.length !== 5 || parts[0] !== "v1")
-    throw new Error("Invalid payload format.");
+  if (parts.length !== 5 || parts[0] !== "v1") throw new Error("Invalid payload format.");
   const [, saltB64, ivB64, iter36, ctB64] = parts;
 
   const salt = b64url.decode(saltB64);
   const iv = b64url.decode(ivB64);
   const iterations = parseInt(iter36, 36);
-  if (!Number.isFinite(iterations) || iterations < 100_000)
-    throw new Error("Invalid iteration count.");
+  if (!Number.isFinite(iterations) || iterations < 100_000) throw new Error("Invalid iteration count.");
 
   const key = await deriveKey(passkey, salt, iterations);
 
@@ -106,7 +90,7 @@ export async function decryptString(
     const ptBuf = await crypto.subtle.decrypt(
       { name: "AES-GCM", iv: toAB(iv) }, // ArrayBuffer
       key,
-      toAB(b64url.decode(ctB64)) // ArrayBuffer
+      toAB(b64url.decode(ctB64)), // ArrayBuffer
     );
     return td.decode(ptBuf);
   } catch {
@@ -115,9 +99,7 @@ export async function decryptString(
 }
 
 // Extract share-relevant params from EventForm
-export function formToRecord(
-  form: EventForm
-): Record<string, string | undefined> {
+export function formToRecord(form: EventForm): Record<string, string | undefined> {
   const obj = {
     t: form.title,
     d: form.description || undefined,
@@ -127,24 +109,17 @@ export function formToRecord(
     ed: form.eDate?.toString(),
     et: form.isAllDay ? undefined : form.eTime || undefined,
     tz: form.timezone,
-    o: form.isOnline ? "" : undefined,
     a: form.isAllDay ? "" : undefined,
   };
 
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== undefined)
-  );
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined));
 }
 
-export function paramsSerializer(
-  params: Record<string, string | undefined>
-): string {
+export function paramsSerializer(params: Record<string, string | undefined>): string {
   return Object.keys(params)
     .sort()
     .filter((k) => params[k] !== undefined)
-    .map(
-      (k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k] ?? "")}`
-    )
+    .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k] ?? "")}`)
     .join("&");
 }
 
@@ -181,9 +156,7 @@ export const timeOptions = (() => {
         minute: "numeric",
       }).format(dateTime);
 
-      const key = `${i.toString().padStart(2, "0")}:${j
-        .toString()
-        .padStart(2, "0")}`;
+      const key = `${i.toString().padStart(2, "0")}:${j.toString().padStart(2, "0")}`;
 
       options[key] = label;
     }
@@ -191,35 +164,22 @@ export const timeOptions = (() => {
   return options;
 })();
 
-export function dateFromParts(
-  dateStr: string,
-  timeStr: string,
-  timeZone: string
-): Date {
+export function dateFromParts(dateStr: string, timeStr: string, timeZone: string): Date {
   const [year, month, day] = dateStr.split("-").map(Number);
-  const [hour, minute] =
-    timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
+  const [hour, minute] = timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
 
-  const date = DateTime.fromObject(
-    { year, month, day, hour, minute },
-    { zone: timeZone }
-  ).toJSDate();
+  const date = DateTime.fromObject({ year, month, day, hour, minute }, { zone: timeZone }).toJSDate();
 
   return date;
 }
 
-export function icalDateFromParts(
-  dateStr: string,
-  timeStr: string,
-  tz: string
-) {
+export function icalDateFromParts(dateStr: string, timeStr: string, tz: string) {
   const [year, month, day] = dateStr.split("-").map(Number);
-  const [hour, minute] =
-    timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
+  const [hour, minute] = timeStr === "" ? [0, 0] : timeStr.split(":").map(Number);
 
   const local = DateTime.fromObject(
     { year, month, day, hour, minute, second: 0, millisecond: 0 },
-    { zone: tz || "UTC" }
+    { zone: tz || "UTC" },
   );
   const utc = local.toUTC();
 
@@ -232,7 +192,7 @@ export function icalDateFromParts(
       minute: utc.minute,
       isDate: timeStr === "",
     },
-    ICAL.Timezone.utcTimezone
+    ICAL.Timezone.utcTimezone,
   );
 }
 
@@ -261,4 +221,13 @@ export const toLocaleTimeFormat = (timeStr: string): string => {
     hour: "numeric",
     minute: "numeric",
   }).format(date);
+};
+
+export const isLink = (text: string): boolean => {
+  return (
+    text.startsWith("http://") ||
+    text.startsWith("https://") ||
+    text.startsWith("tel://") ||
+    text.startsWith("mailto://")
+  );
 };

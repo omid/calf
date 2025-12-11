@@ -27,6 +27,7 @@ import {
   getUserLocale,
   to24Hour,
   toLocaleTimeFormat,
+  isLink,
 } from "./helpers";
 import { initialForm } from "./eventForm";
 import { CalendarDate } from "@internationalized/date";
@@ -263,42 +264,21 @@ function App() {
                     rows={3}
                   />
                   <div className="flex flex-row items-center gap-2">
-                    <div className="flex items-center flex-shrink-0 mr-1">
-                      <ChipCheckbox
-                        checked={form.isOnline}
-                        onValueChange={(isOnline: boolean) => {
-                          setForm((f) => ({ ...f, isOnline }));
-                          if (isOnline) {
-                            setSuggestions([]);
-                            setShowSuggestions(false);
-                          }
-                        }}
-                        text="Link"
-                        id="online-switch"
-                      />
-                    </div>
-
-                    <div className="relative flex-1 min-w-0 max-w-[70vw]" ref={containerRef}>
+                    <div className="relative flex-1 min-w-0" ref={containerRef}>
                       <Input
                         value={form.location}
                         onValueChange={(v) => {
                           setForm((f) => ({ ...f, location: v }));
-                          if (!form.isOnline) {
+                          setShowSuggestions(!isLink(form.location));
+                          if (!isLink(form.location)) {
                             debouncedSearch(String(v));
-                            setShowSuggestions(true);
                           }
                         }}
-                        startContent={
-                          form.isOnline ? (
-                            <LinkIcon className="h-5 w-5 text-gray-400" />
-                          ) : (
-                            <MapPinIcon className="h-5 w-5 text-gray-400" />
-                          )
-                        }
-                        placeholder={form.isOnline ? "Meeting Link" : "Meeting Location"}
-                        type={form.isOnline ? "url" : "text"}
+                        startContent={<MapPinIcon className="h-5 w-5 text-gray-400" />}
+                        placeholder={"Meeting Link/Location"}
+                        type="text"
                         onFocus={() => {
-                          if (!form.isOnline && form.location) setShowSuggestions(true);
+                          setShowSuggestions(!isLink(form.location));
                         }}
                       />
 
