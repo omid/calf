@@ -33,7 +33,6 @@ import { initialForm } from "./eventForm";
 import { CalendarDate } from "@internationalized/date";
 import { I18nProvider } from "@react-aria/i18n";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { LinkIcon } from "@heroicons/react/24/solid";
 
 const sharePath = "/share";
 
