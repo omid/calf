@@ -1,15 +1,15 @@
-import ReactQRCode from "react-qr-code";
-import { generateICal } from "./icalUtils";
-import { ArrowDownTrayIcon, CalendarDaysIcon, GlobeAltIcon, NoSymbolIcon } from "@heroicons/react/16/solid";
-import { Button, Input, Link } from "@heroui/react";
-import { Autocomplete, AutocompleteItem } from "@heroui/react";
-import { useState } from "react";
-import { dateFromParts, decryptString, getUserLocale, isLink, paramsDeserializer } from "./helpers";
-import type { EventQS } from "./eventForm";
+import ReactQRCode from 'react-qr-code';
+import { generateICal } from './icalUtils';
+import { ArrowDownTrayIcon, CalendarDaysIcon, GlobeAltIcon, NoSymbolIcon } from '@heroicons/react/16/solid';
+import { Button, Input, Link } from '@heroui/react';
+import { Autocomplete, AutocompleteItem } from '@heroui/react';
+import { useState } from 'react';
+import { dateFromParts, decryptString, getUserLocale, isLink, paramsDeserializer } from './helpers';
+import type { EventQS } from './eventForm';
 
 function getShareUnlockState() {
   const params = new URLSearchParams(window.location.search);
-  const cipher = params.get("h");
+  const cipher = params.get('h');
   if (cipher) return { protected: true, cipher };
   return { protected: false };
 }
@@ -17,46 +17,46 @@ function getShareUnlockState() {
 function parseStandardParams(): EventQS {
   const params = new URLSearchParams(window.location.search);
   return {
-    title: params.get("t") || "",
-    description: params.get("d") || "",
-    location: params.get("l") || "",
-    sDate: params.get("sd") || "",
-    sTime: params.get("st") || "",
-    eDate: params.get("ed") || "",
-    eTime: params.get("et") || "",
-    timezone: params.get("tz") || "",
-    isAllDay: typeof params.get("a") === "string",
+    title: params.get('t') || '',
+    description: params.get('d') || '',
+    location: params.get('l') || '',
+    sDate: params.get('sd') || '',
+    sTime: params.get('st') || '',
+    eDate: params.get('ed') || '',
+    eTime: params.get('et') || '',
+    timezone: params.get('tz') || '',
+    isAllDay: typeof params.get('a') === 'string',
   };
 }
 
 export default function Share({ isDark }: { isDark: boolean }) {
   const lockState = getShareUnlockState();
-  const [password, setPassword] = useState("");
-  const [unlockError, setUnlockError] = useState("");
+  const [password, setPassword] = useState('');
+  const [unlockError, setUnlockError] = useState('');
   const [unlocked, setUnlocked] = useState(false);
   const [protectedEvent, setProtectedEvent] = useState<EventQS | null>(null);
   const [selectedTz, setSelectedTz] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   async function handleUnlock() {
-    setUnlockError("");
+    setUnlockError('');
     try {
-      const base = await decryptString(lockState.cipher || "", password);
+      const base = await decryptString(lockState.cipher || '', password);
       const data = paramsDeserializer(base);
       // set event metadata exactly as "standard" event
       setProtectedEvent({
-        title: data.t ?? "",
-        description: data.d ?? "",
-        location: data.l ?? "",
-        sDate: data.sd ?? "",
-        sTime: data.st ?? "",
-        eDate: data.ed ?? "",
-        eTime: data.et ?? "",
-        timezone: data.tz ?? "",
-        isAllDay: data.a === "1",
+        title: data.t ?? '',
+        description: data.d ?? '',
+        location: data.l ?? '',
+        sDate: data.sd ?? '',
+        sTime: data.st ?? '',
+        eDate: data.ed ?? '',
+        eTime: data.et ?? '',
+        timezone: data.tz ?? '',
+        isAllDay: data.a === '1',
       });
       setUnlocked(true);
     } catch {
-      setUnlockError("Unlock failed, either link is wrongly copied or password is wrong");
+      setUnlockError('Unlock failed, either link is wrongly copied or password is wrong');
     }
   }
 
@@ -102,9 +102,9 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const tzDisplay = (() => {
     if (event.timezone) return event.timezone;
     const off = -startDt.getTimezoneOffset();
-    const sign = off >= 0 ? "+" : "-";
-    const h = String(Math.floor(Math.abs(off) / 60)).padStart(2, "0");
-    const m = String(Math.abs(off) % 60).padStart(2, "0");
+    const sign = off >= 0 ? '+' : '-';
+    const h = String(Math.floor(Math.abs(off) / 60)).padStart(2, '0');
+    const m = String(Math.abs(off) % 60).padStart(2, '0');
     return `${sign}${h}:${m}`;
   })();
 
@@ -113,11 +113,11 @@ export default function Share({ isDark }: { isDark: boolean }) {
     try {
       const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
         timeZone: tz,
       };
       return new Intl.DateTimeFormat(locale, opts).format(date);
@@ -131,8 +131,8 @@ export default function Share({ isDark }: { isDark: boolean }) {
     try {
       const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
-        hour: "2-digit",
-        minute: "2-digit",
+        hour: '2-digit',
+        minute: '2-digit',
         timeZone: tz,
       };
       return new Intl.DateTimeFormat(locale, opts).format(date);
@@ -145,10 +145,10 @@ export default function Share({ isDark }: { isDark: boolean }) {
     try {
       const locale = new Intl.Locale(getUserLocale());
       const opts: Intl.DateTimeFormatOptions = {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        weekday: "long",
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        weekday: 'long',
       };
       return new Intl.DateTimeFormat(locale, opts).format(date);
     } catch {
@@ -158,11 +158,11 @@ export default function Share({ isDark }: { isDark: boolean }) {
 
   const ical = generateICal(event);
 
-  const icalBlob = new Blob([ical], { type: "text/calendar" });
+  const icalBlob = new Blob([ical], { type: 'text/calendar' });
   const icalUrl = URL.createObjectURL(icalBlob);
   const shareLink = window.location.href;
 
-  const sanitizeDate = (d: string) => d.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const sanitizeDate = (d: string) => d.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const startStr = event.isAllDay ? event.sDate : startDt.toISOString();
   const endStr = event.isAllDay ? event.eDate : endDt.toISOString();
   const details = encodeURIComponent(event.description);
@@ -174,15 +174,15 @@ export default function Share({ isDark }: { isDark: boolean }) {
   )}/${sanitizeDate(endStr)}`;
 
   const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
-    event.isAllDay ? "&allday=true" : ""
+    event.isAllDay ? '&allday=true' : ''
   }`;
 
   const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
-    event.isAllDay ? "&allday=true" : ""
+    event.isAllDay ? '&allday=true' : ''
   }`;
 
   const yahooLink = `https://calendar.yahoo.com/?v=60&title=${title}&st=${startStr}&et=${endStr}&desc=${details}&in_loc=${location}&dur=${
-    event.isAllDay ? "allday" : ""
+    event.isAllDay ? 'allday' : ''
   }`;
 
   // Apple Calendar: open the ICS (do not force download) so the OS can hand it to Calendar
@@ -204,7 +204,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
           <div className="text-sm text-gray-700">{event.description}</div>
           {event.location && (
             <div className="text-sm text-gray-600 mt-2">
-              Location:{" "}
+              Location:{' '}
               <Link
                 href={
                   isLink(event.location)
@@ -230,16 +230,18 @@ export default function Share({ isDark }: { isDark: boolean }) {
                 <>
                   <div className="text-sm text-gray-600">{formatDateOnly(startDt)}</div>
                   <div className="text-sm text-gray-600">
-                    {formatInTime(startDt, selectedTz)} to {formatInTime(endDt, selectedTz)}
+                    {formatInTime(startDt, selectedTz)} to {formatInTime(endDt, selectedTz)} ({tzDisplay})
                   </div>
                 </>
               ) : (
                 <>
                   <div className="text-sm text-gray-600">Start: {formatInTimezone(startDt, selectedTz)}</div>
-                  <div className="text-sm text-gray-600">End: {formatInTimezone(endDt, selectedTz)}</div>
+                  <div className="text-sm text-gray-600">
+                    End: {formatInTimezone(endDt, selectedTz)} ({tzDisplay})
+                  </div>
                 </>
               )}
-              <div className="text-sm text-gray-600">Original Time Zone: {tzDisplay}</div>
+
               <div className="flex items-center gap-2 mt-2">
                 <label htmlFor="tz-autocomplete" className="text-sm text-gray-600">
                   Time Zone:
@@ -254,7 +256,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
                   isClearable={false}
                   variant="bordered"
                 >
-                  {Intl.supportedValuesOf("timeZone").map((tz) => (
+                  {Intl.supportedValuesOf('timeZone').map((tz) => (
                     <AutocompleteItem key={tz} className="text-gray-800 bg-white px-3 py-2 text-sm">
                       {tz}
                     </AutocompleteItem>
@@ -350,11 +352,38 @@ export default function Share({ isDark }: { isDark: boolean }) {
           <ReactQRCode
             value={shareLink}
             size={128}
-            bgColor={isDark ? "#1e2939" : "#fff"}
-            fgColor={isDark ? "#4A5565" : "#000"}
+            bgColor={isDark ? '#1e2939' : '#fff'}
+            fgColor={isDark ? '#4A5565' : '#000'}
           />
         </div>
-        <div className="text-sm text-gray-600 break-all">{shareLink}</div>
+
+        <div className="text-sm text-gray-600 break-all">
+          {shareLink}
+          <div className="flex gap-3 mt-8">
+            <Button
+              as={Link}
+              href={(() => {
+                const params = new URLSearchParams();
+                params.set('t', event.title);
+                params.set('d', event.description);
+                params.set('l', event.location);
+                params.set('sd', event.sDate);
+                params.set('st', event.sTime);
+                params.set('ed', event.eDate);
+                params.set('et', event.eTime);
+                params.set('tz', event.timezone);
+                if (event.isAllDay) params.set('a', '1');
+                return `/?${params.toString()}`;
+              })()}
+              size="sm"
+              rel="noopener noreferrer"
+              className="bg-gray-400 dark:bg-gray-600 text-white text-xs font-medium rounded hover:bg-gray-600 hover:dark:bg-gray-700"
+              aria-label="Edit/Clone Event"
+            >
+              Edit/Clone Event
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

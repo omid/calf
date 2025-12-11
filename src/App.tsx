@@ -1,10 +1,10 @@
-import AboutModal from "./AboutModal";
-import { useState, useEffect, useRef, useMemo } from "react";
-import ReactQRCode from "react-qr-code";
-import Share from "./Share";
-import { Button, Input, Textarea, DatePicker, Autocomplete, AutocompleteItem, Link, Alert } from "@heroui/react";
-import { searchPlaces, debounce } from "./nominatim";
-import type { NominatimPlace } from "./nominatim";
+import AboutModal from './AboutModal';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import ReactQRCode from 'react-qr-code';
+import Share from './Share';
+import { Button, Input, Textarea, DatePicker, Autocomplete, AutocompleteItem, Link, Alert } from '@heroui/react';
+import { searchPlaces, debounce } from './nominatim';
+import type { NominatimPlace } from './nominatim';
 import {
   ChatBubbleBottomCenterTextIcon,
   ClockIcon,
@@ -16,9 +16,9 @@ import {
   MapPinIcon,
   SunIcon,
   MoonIcon,
-} from "@heroicons/react/16/solid";
-import ChipCheckbox from "./ChipCheckbox";
-import CollapsibleSection from "./CollapsibleSection";
+} from '@heroicons/react/16/solid';
+import ChipCheckbox from './ChipCheckbox';
+import CollapsibleSection from './CollapsibleSection';
 import {
   formToRecord,
   paramsSerializer,
@@ -28,13 +28,13 @@ import {
   to24Hour,
   toLocaleTimeFormat,
   isLink,
-} from "./helpers";
-import { initialForm } from "./eventForm";
-import { CalendarDate } from "@internationalized/date";
-import { I18nProvider } from "@react-aria/i18n";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+} from './helpers';
+import { initialForm } from './eventForm';
+import { CalendarDate } from '@internationalized/date';
+import { I18nProvider } from '@react-aria/i18n';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
-const sharePath = "/share";
+const sharePath = '/share';
 
 const FixedLabel = ({ children }: { children: React.ReactNode }) => (
   <span className="inline-block w-21 text-center xs:text-left">{children}</span>
@@ -42,12 +42,12 @@ const FixedLabel = ({ children }: { children: React.ReactNode }) => (
 
 function App() {
   const [form, setForm] = useState(initialForm);
-  const [step, setStep] = useState<"form" | "share">("form");
-  const urlPrefix = import.meta.env.MODE === "production" ? "/calf" : "";
+  const [step, setStep] = useState<'form' | 'share'>('form');
+  const urlPrefix = import.meta.env.MODE === 'production' ? '/calf' : '';
   const origin = window.location.origin;
   // controlled input for Autocomplete so default timeZone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
-  const [formError, setFormError] = useState("");
+  const [formError, setFormError] = useState('');
   const [passwordEnabled, setPasswordEnabled] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<NominatimPlace[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -55,11 +55,11 @@ function App() {
   const [aboutOpen, setAboutOpen] = useState(false);
   // binary theme: dark or light. Default to system preference on first load.
   const [isDark, setIsDark] = useState<boolean>(() =>
-    typeof window !== "undefined" && window.matchMedia
-      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-color-scheme: dark)').matches
       : false,
   );
-  const [shareLink, setShareLink] = useState<string>("");
+  const [shareLink, setShareLink] = useState<string>('');
   // needed to trigger async share link generation before rendering share step
   const [pendingShare, setPendingShare] = useState(false);
   const isSharePage = window.location.pathname === urlPrefix + sharePath;
@@ -67,18 +67,48 @@ function App() {
 
   const locale = getUserLocale();
 
+  // Parse URL query parameters on initial mount to prefill form
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get('t');
+    const d = params.get('d');
+    const l = params.get('l');
+    const sd = params.get('sd');
+    const st = params.get('st');
+    const ed = params.get('ed');
+    const et = params.get('et');
+    const tz = params.get('tz');
+    const a = params.get('a');
+
+    // Only update form if there are query parameters to parse
+    if (t || d || l || sd || st || ed || et || tz || a) {
+      setForm((prevForm) => ({
+        ...prevForm,
+        title: t || prevForm.title,
+        description: d || prevForm.description,
+        location: l || prevForm.location,
+        sDate: sd ? new CalendarDate(...(sd.split('-').map(Number) as [number, number, number])) : prevForm.sDate,
+        sTime: st || prevForm.sTime,
+        eDate: ed ? new CalendarDate(...(ed.split('-').map(Number) as [number, number, number])) : prevForm.eDate,
+        eTime: et || prevForm.eTime,
+        timezone: tz || prevForm.timezone,
+        isAllDay: a === '1' || prevForm.isAllDay,
+      }));
+    }
+  }, []);
+
   // apply theme class when `isDark` changes. Do NOT persist in cookies/localStorage.
   useEffect(() => {
     const root = document.documentElement;
-    if (isDark) root.classList.add("dark");
-    else root.classList.remove("dark");
+    if (isDark) root.classList.add('dark');
+    else root.classList.remove('dark');
   }, [isDark]);
 
   // debounced search wrapper, memoized to avoid recreation on each render
   const debouncedSearch = useMemo(
     () =>
       debounce(async (arg: unknown) => {
-        const q = String(arg ?? "");
+        const q = String(arg ?? '');
         if (!q || q.trim().length < 2) {
           setSuggestions([]);
           return;
@@ -100,33 +130,33 @@ function App() {
         setShowSuggestions(false);
       }
     }
-    document.addEventListener("click", onDocClick);
-    return () => document.removeEventListener("click", onDocClick);
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
   }, []);
 
   const onSharePress = async () => {
     // validate required fields: title, sDate, endDate
     if (!form.title.trim() || !form.sDate || !form.eDate) {
-      setFormError("Title, Start date and End date are required to create an event.");
+      setFormError('Title, Start date and End date are required to create an event.');
       return;
     }
     // validate start < end
     if (form.isAllDay) {
       if (form.eDate <= form.sDate) {
-        setFormError("End date must be after Start date.");
+        setFormError('End date must be after Start date.');
         return;
       }
     } else {
       if (form.eDate <= form.sDate) {
-        const startDt = form.sDate.toString() + " " + form.sTime;
-        const endDt = form.eDate.toString() + " " + form.eTime;
+        const startDt = form.sDate.toString() + ' ' + form.sTime;
+        const endDt = form.eDate.toString() + ' ' + form.eTime;
         if (new Date(endDt) <= new Date(startDt)) {
-          setFormError("End date/time must be after Start date/time.");
+          setFormError('End date/time must be after Start date/time.');
           return;
         }
       }
     }
-    setFormError("");
+    setFormError('');
     // Compose event params for share link:
     const params = formToRecord(form);
     if (passwordEnabled && form.password) {
@@ -137,7 +167,7 @@ function App() {
         setShareLink(`${origin}${urlPrefix}${sharePath}?h=${encodeURIComponent(cipher)}`);
       } finally {
         setPendingShare(false);
-        setStep("share");
+        setStep('share');
       }
     } else {
       // Ensure all values are strings
@@ -148,7 +178,7 @@ function App() {
       );
       const urlParams = new URLSearchParams(stringParams);
       setShareLink(`${origin}${urlPrefix}${sharePath}?${urlParams.toString()}`);
-      setStep("share");
+      setStep('share');
     }
   };
 
@@ -166,8 +196,8 @@ function App() {
     setForm((f) => ({ ...f, sTime }));
     if (!form.eDate || !form.sDate) return;
 
-    const startDt = new Date(form.sDate.toString() + " " + sTime);
-    const endDt = new Date(form.eDate.toString() + " " + form.eTime);
+    const startDt = new Date(form.sDate.toString() + ' ' + sTime);
+    const endDt = new Date(form.eDate.toString() + ' ' + form.eTime);
 
     if (endDt <= startDt) {
       // adjust end time to be 1 hour after start time
@@ -175,7 +205,7 @@ function App() {
       const eDate = new CalendarDate(newEndDt.getFullYear(), newEndDt.getMonth() + 1, newEndDt.getDate());
       const h = newEndDt.getHours();
       const m = newEndDt.getMinutes();
-      const eTime = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+      const eTime = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       setForm((f) => ({ ...f, eDate, eTime }));
     }
   };
@@ -186,17 +216,17 @@ function App() {
     setForm((f) => ({ ...f, eTime }));
   };
 
-  const iframeSrc = `counter.html?path=${isSharePage ? sharePath : "/"}`;
+  const iframeSrc = `counter.html?path=${isSharePage ? sharePath : '/'}`;
 
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
-      <div className={`${aboutOpen ? "overscroll-none" : ""}`}>
+      <div className={`${aboutOpen ? 'overscroll-none' : ''}`}>
         <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-50 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4">
           <div className="w-full flex items-start justify-between gap-3 mb-2">
             <img src="assets/logo.avif" className="h-20 sm:h-28 mb-2" alt="Calf" />
             <div className="text-left flex flex-col justify-center">
               <Link
-                href={urlPrefix + "/"}
+                href={urlPrefix + '/'}
                 className="hover:underline text-gray-800 text-2xl sm:text-3xl font-bold mb-1"
               >
                 Calf (Calendar Factory)
@@ -238,7 +268,7 @@ function App() {
                 onPress={() => setAboutOpen(true)}
                 className=" bg-gray-200 dark:bg-gray-700 p-0 min-w-8 xs:ml-2 ml-0 xs:mt-0 mt-2 h-8"
               >
-                <InformationCircleIcon className={`h-4 w-4 ${isDark ? "text-yellow-300" : "text-yellow-600"}`} />
+                <InformationCircleIcon className={`h-4 w-4 ${isDark ? 'text-yellow-300' : 'text-yellow-600'}`} />
               </Button>
             </div>
           </div>
@@ -247,7 +277,7 @@ function App() {
             <Share isDark={isDark} />
           ) : (
             <>
-              {step === "form" && (
+              {step === 'form' && (
                 <div className="w-full max-w-full sm:max-w-2xl  bg-white rounded shadow p-2 sm:p-4 flex flex-col gap-3 sm:gap-4">
                   <Input
                     value={form.title}
@@ -274,7 +304,7 @@ function App() {
                           }
                         }}
                         startContent={<MapPinIcon className="h-5 w-5 text-gray-400" />}
-                        placeholder={"Meeting Link/Location"}
+                        placeholder={'Meeting Link/Location'}
                         type="text"
                         onFocus={() => {
                           setShowSuggestions(!isLink(form.location));
@@ -382,14 +412,14 @@ function App() {
                             startContent={<GlobeAltIcon className="h-5 w-5 text-gray-400" />}
                             id="timezone"
                             placeholder="Type to filter time zones"
-                            defaultItems={Intl.supportedValuesOf("timeZone").map((tz) => ({ label: tz, value: tz }))}
+                            defaultItems={Intl.supportedValuesOf('timeZone').map((tz) => ({ label: tz, value: tz }))}
                             defaultSelectedKey={form.timezone}
                             onSelectionChange={(v) => {
                               setForm((f) => ({ ...f, timezone: String(v) }));
                             }}
                             isClearable={false}
                           >
-                            {Intl.supportedValuesOf("timeZone").map((tz) => (
+                            {Intl.supportedValuesOf('timeZone').map((tz) => (
                               <AutocompleteItem key={tz} className="text-gray-800 bg-white px-3 py-2 text-sm">
                                 {tz}
                               </AutocompleteItem>
@@ -450,7 +480,7 @@ function App() {
                               )}
                             </Button>
                           }
-                          type={isPassVisible ? "text" : "password"}
+                          type={isPassVisible ? 'text' : 'password'}
                           value={form.password}
                           onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                         />
@@ -471,7 +501,7 @@ function App() {
                   </Button>
                 </div>
               )}
-              {step === "share" && (
+              {step === 'share' && (
                 <div className="w-full max-w-3xl bg-white rounded shadow p-6 flex flex-col gap-4 items-center">
                   <div className="font-semibold">Share this link:</div>
                   {pendingShare ? (
@@ -489,14 +519,14 @@ function App() {
                       <ReactQRCode
                         value={shareLink}
                         size={128}
-                        bgColor={isDark ? "#0F1724" : "#fff"}
-                        fgColor={isDark ? "#4A5565" : "#000"}
+                        bgColor={isDark ? '#0F1724' : '#fff'}
+                        fgColor={isDark ? '#4A5565' : '#000'}
                       />
                     </>
                   )}
                   <Button
                     className="mt-4 bg-gray-200 px-4 py-2 rounded dark:bg-gray-600 dark:text-gray-300"
-                    onPress={() => setStep("form")}
+                    onPress={() => setStep('form')}
                   >
                     Back
                   </Button>

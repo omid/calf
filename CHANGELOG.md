@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.3.4] - 2025-12-11
+
+- There is a new option in the "Share" mode to "Edit/Clone" the shared event.
+
 ## [0.3.3] - 2025-12-11
 
 - The "Link" toggle has been removed. Now it tries to detect if it's a link or a location
