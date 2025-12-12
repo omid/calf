@@ -1,4 +1,5 @@
 import AboutModal from './AboutModal';
+import AIModal from './AIModal';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import ReactQRCode from 'react-qr-code';
 import Share from './Share';
@@ -53,6 +54,7 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   // binary theme: dark or light. Default to system preference on first load.
   const [isDark, setIsDark] = useState<boolean>(() =>
     typeof window !== 'undefined' && window.matchMedia
@@ -182,6 +184,44 @@ function App() {
     }
   };
 
+  const handleApplyAI = (text: string) => {
+    if (!text || !text.trim()) {
+      setFormError('No JSON provided.');
+      return;
+    }
+    try {
+      const obj = JSON.parse(text);
+      const mapped: any = {};
+      if (typeof obj.title === 'string') mapped.title = obj.title;
+      if (typeof obj.description === 'string') mapped.description = obj.description;
+      if (typeof obj.location === 'string') mapped.location = obj.location;
+      if (typeof obj.sTime === 'string') mapped.sTime = obj.sTime;
+      if (typeof obj.eTime === 'string') mapped.eTime = obj.eTime;
+      if (typeof obj.timezone === 'string') mapped.timezone = obj.timezone;
+      if (typeof obj.isAllDay === 'boolean') mapped.isAllDay = obj.isAllDay;
+
+      // parse date strings like YYYY-MM-DD into CalendarDate
+      if (typeof obj.sDate === 'string') {
+        const parts = obj.sDate.split('-').map(Number);
+        if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+          mapped.sDate = new CalendarDate(parts[0], parts[1], parts[2]);
+        }
+      }
+      if (typeof obj.eDate === 'string') {
+        const parts = obj.eDate.split('-').map(Number);
+        if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+          mapped.eDate = new CalendarDate(parts[0], parts[1], parts[2]);
+        }
+      }
+
+      setForm((f) => ({ ...f, ...mapped }));
+      setFormError('');
+      setAiOpen(false);
+    } catch (e: any) {
+      setFormError('Invalid JSON: ' + (e?.message || String(e)));
+    }
+  };
+
   const onChangeStartDate = (date: CalendarDate | null) => {
     setForm((f) => ({ ...f, sDate: date }));
 
@@ -279,6 +319,15 @@ function App() {
             <>
               {step === 'form' && (
                 <div className="w-full max-w-full sm:max-w-2xl  bg-white rounded shadow p-2 sm:p-4 flex flex-col gap-3 sm:gap-4">
+                  <div className="w-full flex justify-center">
+                    <Button
+                      onPress={() => setAiOpen(true)}
+                      className="mb-1 rounded-lg px-4 py-2 font-bold bg-linear-to-r from-indigo-500 via-pink-500 to-yellow-400 text-white shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 transition-all"
+                      title="Create event with AI"
+                    >
+                      ✨ Create event with AI
+                    </Button>
+                  </div>
                   <Input
                     value={form.title}
                     onValueChange={(v) => setForm((f) => ({ ...f, title: v }))}
@@ -537,6 +586,7 @@ function App() {
         </div>
       </div>
       <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
+      <AIModal isOpen={aiOpen} onClose={() => setAiOpen(false)} onApply={handleApplyAI} />
       <iframe src={iframeSrc} height="0" width="0"></iframe>
     </div>
   );
