@@ -1,4 +1,4 @@
-import { CalendarDate, getLocalTimeZone, today } from "@internationalized/date";
+import { CalendarDate, getLocalTimeZone, today } from '@internationalized/date';
 
 export type EventForm = {
   title: string;
@@ -36,7 +36,7 @@ const nowTime = function () {
     h++;
     if (h === 24) h = 0;
   }
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 };
 
 const nextHourTime = function () {
@@ -52,18 +52,33 @@ const nextHourTime = function () {
   }
   if (h >= 24) h -= 24;
 
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
 };
 
 export const initialForm: EventForm = {
-  title: "",
-  description: "",
-  location: "",
+  title: '',
+  description: '',
+  location: '',
   sDate: today(getLocalTimeZone()),
   sTime: nowTime(),
   eDate: today(getLocalTimeZone()),
   eTime: nextHourTime(),
   timezone: getLocalTimeZone(),
   isAllDay: false,
-  password: "",
+  password: '',
+};
+
+export const parseStandardParams = function (): EventQS {
+  const params = new URLSearchParams(window.location.search);
+  return {
+    title: params.get('t') || '',
+    description: params.get('d') || '',
+    location: params.get('l') || '',
+    sDate: params.get('sd') || '',
+    sTime: params.get('st') || '',
+    eDate: params.get('ed') || '',
+    eTime: params.get('et') || '',
+    timezone: params.get('tz') || '',
+    isAllDay: typeof params.get('a') === 'string',
+  };
 };

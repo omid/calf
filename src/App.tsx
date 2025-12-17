@@ -30,7 +30,7 @@ import {
   toLocaleTimeFormat,
   isLink,
 } from './helpers';
-import { initialForm } from './eventForm';
+import { initialForm, parseStandardParams } from './eventForm';
 import { CalendarDate } from '@internationalized/date';
 import { I18nProvider } from '@react-aria/i18n';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
@@ -49,6 +49,7 @@ function App() {
   // controlled input for Autocomplete so default timeZone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
   const [formError, setFormError] = useState('');
+  const [aiFormError, setAiFormError] = useState('');
   const [passwordEnabled, setPasswordEnabled] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<NominatimPlace[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -71,32 +72,25 @@ function App() {
 
   // Parse URL query parameters on initial mount to prefill form
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const t = params.get('t');
-    const d = params.get('d');
-    const l = params.get('l');
-    const sd = params.get('sd');
-    const st = params.get('st');
-    const ed = params.get('ed');
-    const et = params.get('et');
-    const tz = params.get('tz');
-    const a = params.get('a');
+    const params = parseStandardParams();
 
-    // Only update form if there are query parameters to parse
-    if (t || d || l || sd || st || ed || et || tz || a) {
-      setForm((prevForm) => ({
-        ...prevForm,
-        title: t || prevForm.title,
-        description: d || prevForm.description,
-        location: l || prevForm.location,
-        sDate: sd ? new CalendarDate(...(sd.split('-').map(Number) as [number, number, number])) : prevForm.sDate,
-        sTime: st || prevForm.sTime,
-        eDate: ed ? new CalendarDate(...(ed.split('-').map(Number) as [number, number, number])) : prevForm.eDate,
-        eTime: et || prevForm.eTime,
-        timezone: tz || prevForm.timezone,
-        isAllDay: a === '1' || prevForm.isAllDay,
-      }));
-    }
+    // Only update form if the query parameters not empty
+    setForm((prevForm) => ({
+      ...prevForm,
+      title: params.title || prevForm.title,
+      description: params.description || prevForm.description,
+      location: params.location || prevForm.location,
+      sDate: params.sDate
+        ? new CalendarDate(...(params.sDate.split('-').map(Number) as [number, number, number]))
+        : prevForm.sDate,
+      sTime: params.sTime || prevForm.sTime,
+      eDate: params.eDate
+        ? new CalendarDate(...(params.eDate.split('-').map(Number) as [number, number, number]))
+        : prevForm.eDate,
+      eTime: params.eTime || prevForm.eTime,
+      timezone: params.timezone || prevForm.timezone,
+      isAllDay: params.isAllDay,
+    }));
   }, []);
 
   // apply theme class when `isDark` changes. Do NOT persist in cookies/localStorage.
@@ -191,7 +185,7 @@ function App() {
     }
     try {
       const obj = JSON.parse(text);
-      const mapped: any = {};
+      const mapped = initialForm;
       if (typeof obj.title === 'string') mapped.title = obj.title;
       if (typeof obj.description === 'string') mapped.description = obj.description;
       if (typeof obj.location === 'string') mapped.location = obj.location;
@@ -203,22 +197,23 @@ function App() {
       // parse date strings like YYYY-MM-DD into CalendarDate
       if (typeof obj.sDate === 'string') {
         const parts = obj.sDate.split('-').map(Number);
-        if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+        if (parts.length === 3 && parts.every((n: string) => !Number.isNaN(n))) {
           mapped.sDate = new CalendarDate(parts[0], parts[1], parts[2]);
         }
       }
       if (typeof obj.eDate === 'string') {
         const parts = obj.eDate.split('-').map(Number);
-        if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+        if (parts.length === 3 && parts.every((n: string) => !Number.isNaN(n))) {
           mapped.eDate = new CalendarDate(parts[0], parts[1], parts[2]);
         }
       }
 
       setForm((f) => ({ ...f, ...mapped }));
-      setFormError('');
+      setAiFormError('');
       setAiOpen(false);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      setFormError('Invalid JSON: ' + (e?.message || String(e)));
+      setAiFormError('Invalid JSON: ' + (e?.message || String(e)));
     }
   };
 
@@ -261,7 +256,7 @@ function App() {
   return (
     <div className="flex flex-col items-center sm:p-2 p-0">
       <div className={`${aboutOpen ? 'overscroll-none' : ''}`}>
-        <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-50 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4">
+        <div className="sm:rounded-lg w-full max-w-[100vw] lg:max-w-3xl bg-gray-100 dark:bg-gray-800 text-gray-800 flex flex-col items-center p-2 sm:p-4 sm:pb-10">
           <div className="w-full flex items-start justify-between gap-3 mb-2">
             <img src="assets/logo.avif" className="h-20 sm:h-28 mb-2" alt="Calf" />
             <div className="text-left flex flex-col justify-center">
@@ -321,11 +316,12 @@ function App() {
                 <div className="w-full max-w-full sm:max-w-2xl  bg-white rounded shadow p-2 sm:p-4 flex flex-col gap-3 sm:gap-4">
                   <div className="w-full flex justify-center">
                     <Button
+                      size="sm"
                       onPress={() => setAiOpen(true)}
                       className="mb-1 rounded-lg px-4 py-2 font-bold bg-linear-to-r from-indigo-500 via-pink-500 to-yellow-400 text-white shadow-lg hover:shadow-2xl transform hover:-translate-y-0.5 transition-all"
-                      title="Create event with AI"
+                      title="Easily fill the form with AI"
                     >
-                      ✨ Create event with AI
+                      ✨ Easily fill the form with AI
                     </Button>
                   </div>
                   <Input
@@ -538,16 +534,17 @@ function App() {
                   </CollapsibleSection>
 
                   {formError && <div className="text-sm text-red-600">{formError}</div>}
-                  <Button
-                    variant="solid"
-                    color="primary"
-                    size="lg"
-                    className="font-bold"
-                    onPress={onSharePress}
-                    title="Share Event"
-                  >
-                    Share Event
-                  </Button>
+                  <div className="w-full flex justify-center mt-2">
+                    <Button
+                      variant="solid"
+                      color="primary"
+                      className="font-bold w-64"
+                      onPress={onSharePress}
+                      title="Share Event"
+                    >
+                      Share Event
+                    </Button>
+                  </div>
                 </div>
               )}
               {step === 'share' && (
@@ -585,8 +582,14 @@ function App() {
           )}
         </div>
       </div>
-      <AboutModal isOpen={aboutOpen} onClose={() => setAboutOpen(false)} />
-      <AIModal isOpen={aiOpen} onClose={() => setAiOpen(false)} onApply={handleApplyAI} />
+      <AboutModal isOpen={aboutOpen} isDark={isDark} onClose={() => setAboutOpen(false)} />
+      <AIModal
+        isOpen={aiOpen}
+        isDark={isDark}
+        onClose={() => setAiOpen(false)}
+        onApply={handleApplyAI}
+        aiFormError={aiFormError}
+      />
       <iframe src={iframeSrc} height="0" width="0"></iframe>
     </div>
   );

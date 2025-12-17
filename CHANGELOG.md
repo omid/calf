@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - yyyy-mm-dd
 
+## [0.4.0] - 2025-12-17
+
+- Calf has intelligence now! (I'm not sure if Intelligence of a calf, is artificial or not, so I'm not sure about using AI here, or CI) You can simply use your favorite AI tool to easily generate a calendar event described as a text in normal human language. For example you can copy/paste a text from your invitation email, or a tweet or where ever you want and Calf will fill the form and create the event for you.
+
 ## [0.3.4] - 2025-12-11
 
 - There is a new option in the "Share" mode to "Edit/Clone" the shared event.
