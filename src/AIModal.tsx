@@ -170,7 +170,7 @@ export default function AIModal({ isOpen, isDark, onClose, onApply, aiFormError 
             Cancel
           </Button>
           <Button
-            className="rounded-lg bg-linear-to-r from-indigo-500 via-pink-500 to-yellow-400 text-white px-4 py-2 hover:shadow-2xl"
+            className="rounded-lg font-bold bg-linear-to-r from-indigo-500 via-pink-500 to-yellow-400 text-white px-4 py-2 hover:shadow-2xl"
             onPress={() => onApply(value)}
           >
             Fill the form
