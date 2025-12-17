@@ -4,29 +4,15 @@ import { ArrowDownTrayIcon, CalendarDaysIcon, GlobeAltIcon, NoSymbolIcon } from 
 import { Button, Input, Link } from '@heroui/react';
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { useState } from 'react';
+import TimezonePopover from './TimezonePopover';
 import { dateFromParts, decryptString, getUserLocale, isLink, paramsDeserializer } from './helpers';
-import type { EventQS } from './eventForm';
+import { parseStandardParams, type EventQS } from './eventForm';
 
 function getShareUnlockState() {
   const params = new URLSearchParams(window.location.search);
   const cipher = params.get('h');
   if (cipher) return { protected: true, cipher };
   return { protected: false };
-}
-
-function parseStandardParams(): EventQS {
-  const params = new URLSearchParams(window.location.search);
-  return {
-    title: params.get('t') || '',
-    description: params.get('d') || '',
-    location: params.get('l') || '',
-    sDate: params.get('sd') || '',
-    sTime: params.get('st') || '',
-    eDate: params.get('ed') || '',
-    eTime: params.get('et') || '',
-    timezone: params.get('tz') || '',
-    isAllDay: typeof params.get('a') === 'string',
-  };
 }
 
 export default function Share({ isDark }: { isDark: boolean }) {
@@ -185,9 +171,6 @@ export default function Share({ isDark }: { isDark: boolean }) {
     event.isAllDay ? 'allday' : ''
   }`;
 
-  // Apple Calendar: open the ICS (do not force download) so the OS can hand it to Calendar
-  const appleLink = icalUrl; // keep as blob; omit `download` attr on the anchor
-
   return (
     <div className="w-full max-w-3xl p-1 pt-6 flex flex-col gap-4">
       <div className="border-3 border-gray-200 dark:border-gray-700 shadow-lg rounded p-4 flex flex-row gap-5">
@@ -201,7 +184,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
             </div>
             <div className="font-semibold wrap-anywhere">{event.title}</div>
           </div>
-          <div className="text-sm text-gray-700">{event.description}</div>
+          <div className="text-sm text-gray-700 dark:text-gray-300 ">{event.description}</div>
           {event.location && (
             <div className="text-sm text-gray-600 mt-2">
               Location:{' '}
@@ -230,14 +213,16 @@ export default function Share({ isDark }: { isDark: boolean }) {
                 <>
                   <div className="text-sm text-gray-600">{formatDateOnly(startDt)}</div>
                   <div className="text-sm text-gray-600">
-                    {formatInTime(startDt, selectedTz)} to {formatInTime(endDt, selectedTz)} ({tzDisplay})
+                    {formatInTime(startDt, selectedTz)} to {formatInTime(endDt, selectedTz)}{' '}
+                    <TimezonePopover originalTimezone={tzDisplay} selectedTimezone={selectedTz} />
                   </div>
                 </>
               ) : (
                 <>
                   <div className="text-sm text-gray-600">Start: {formatInTimezone(startDt, selectedTz)}</div>
                   <div className="text-sm text-gray-600">
-                    End: {formatInTimezone(endDt, selectedTz)} ({tzDisplay})
+                    End: {formatInTimezone(endDt, selectedTz)}{' '}
+                    <TimezonePopover originalTimezone={tzDisplay} selectedTimezone={selectedTz} />
                   </div>
                 </>
               )}
@@ -299,7 +284,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
         <Button
           showAnchorIcon
           as={Link}
-          href={appleLink}
+          href={icalUrl}
           // NOTE: no download attribute — lets iOS/macOS open in Calendar
           aria-label="Add to Apple Calendar"
           variant="ghost"
