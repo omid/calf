@@ -32,6 +32,11 @@ jobs:
       - name: Install
         run: yarn
 
+      - name: Run unit tests
+        run: |
+          # Run tests once in CI; fail the job if tests fail
+          yarn test --run
+
       - name: Build
         run: yarn build
 

@@ -21,5 +21,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "hero.ts"]
+  "include": ["src", "hero.ts", "playwright.config.ts", "vitest.config.ts", "vitest.setup.ts"]
 }

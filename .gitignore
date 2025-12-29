@@ -1,3 +1,8 @@
 node_modules
 dist
 stats.html
+coverage
+.vscode
+.DS_Store
+playwright-report
+test-results

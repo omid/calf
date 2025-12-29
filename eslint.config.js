@@ -7,7 +7,7 @@ import { globalIgnores, defineConfig } from 'eslint/config'
 
 export default defineConfig([
   // ignore build output (replacement for your globalIgnores(['dist']))
-  globalIgnores(["dist"]),
+  globalIgnores(["dist", "tests"]),
 
   // base configs
   js.configs.recommended,
