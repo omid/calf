@@ -5,15 +5,21 @@ import { Button, Input, Link } from '@heroui/react';
 import { Autocomplete, AutocompleteItem } from '@heroui/react';
 import { useState } from 'react';
 import TimezonePopover from './TimezonePopover';
-import { dateFromParts, decryptString, getUserLocale, isLink, paramsDeserializer } from './helpers';
+import { dateFromParts, decryptString, isLink, paramsDeserializer, urlPrefix } from './helpers';
 import { parseStandardParams, type EventQS } from './eventForm';
-
-function getShareUnlockState() {
-  const params = new URLSearchParams(window.location.search);
-  const cipher = params.get('h');
-  if (cipher) return { protected: true, cipher };
-  return { protected: false };
-}
+import {
+  getShareUnlockState,
+  formatInTimezone,
+  formatInTime,
+  formatDateOnly,
+  calculateTimezoneDisplay,
+  generateGoogleCalendarLink,
+  generateOutlookLink,
+  generateOffice365Link,
+  generateYahooCalendarLink,
+  getCalendarDateStrings,
+  isSameDay,
+} from './shareUtils';
 
 export default function Share({ isDark }: { isDark: boolean }) {
   const lockState = getShareUnlockState();
@@ -85,91 +91,13 @@ export default function Share({ isDark }: { isDark: boolean }) {
   const startDt = dateFromParts(event.sDate, event.sTime, event.timezone);
   const endDt = dateFromParts(event.eDate || event.sDate, event.eTime || event.sTime, event.timezone);
 
-  const tzDisplay = (() => {
-    if (event.timezone) return event.timezone;
-    const off = -startDt.getTimezoneOffset();
-    const sign = off >= 0 ? '+' : '-';
-    const h = String(Math.floor(Math.abs(off) / 60)).padStart(2, '0');
-    const m = String(Math.abs(off) % 60).padStart(2, '0');
-    return `${sign}${h}:${m}`;
-  })();
-
-  const formatInTimezone = (date: Date, tz?: string) => {
-    if (!tz) return date.toUTCString();
-    try {
-      const locale = new Intl.Locale(getUserLocale());
-      const opts: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: tz,
-      };
-      return new Intl.DateTimeFormat(locale, opts).format(date);
-    } catch {
-      return date.toUTCString();
-    }
-  };
-
-  const formatInTime = (date: Date, tz?: string) => {
-    if (!tz) return date.toUTCString();
-    try {
-      const locale = new Intl.Locale(getUserLocale());
-      const opts: Intl.DateTimeFormatOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: tz,
-      };
-      return new Intl.DateTimeFormat(locale, opts).format(date);
-    } catch {
-      return date.toUTCString();
-    }
-  };
-
-  const formatDateOnly = (date: Date) => {
-    try {
-      const locale = new Intl.Locale(getUserLocale());
-      const opts: Intl.DateTimeFormatOptions = {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        weekday: 'long',
-      };
-      return new Intl.DateTimeFormat(locale, opts).format(date);
-    } catch {
-      return date.toISOString().slice(0, 10);
-    }
-  };
+  const tzDisplay = calculateTimezoneDisplay(startDt, event.timezone);
+  const { startStr, endStr } = getCalendarDateStrings(event, startDt, endDt);
 
   const ical = generateICal(event);
-
   const icalBlob = new Blob([ical], { type: 'text/calendar' });
   const icalUrl = URL.createObjectURL(icalBlob);
   const shareLink = window.location.href;
-
-  const sanitizeDate = (d: string) => d.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const startStr = event.isAllDay ? event.sDate : startDt.toISOString();
-  const endStr = event.isAllDay ? event.eDate : endDt.toISOString();
-  const details = encodeURIComponent(event.description);
-  const title = encodeURIComponent(event.title);
-  const location = encodeURIComponent(event.location);
-
-  const googleLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${sanitizeDate(
-    startStr,
-  )}/${sanitizeDate(endStr)}`;
-
-  const outlookLink = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
-    event.isAllDay ? '&allday=true' : ''
-  }`;
-
-  const office365Link = `https://outlook.office.com/calendar/0/deeplink/compose?subject=${title}&body=${details}&location=${location}&startdt=${startStr}&enddt=${endStr}${
-    event.isAllDay ? '&allday=true' : ''
-  }`;
-
-  const yahooLink = `https://calendar.yahoo.com/?v=60&title=${title}&st=${startStr}&et=${endStr}&desc=${details}&in_loc=${location}&dur=${
-    event.isAllDay ? 'allday' : ''
-  }`;
 
   return (
     <div className="w-full max-w-3xl p-1 pt-6 flex flex-col gap-4">
@@ -209,7 +137,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
             </div>
           ) : (
             <>
-              {formatDateOnly(startDt) === formatDateOnly(endDt) ? (
+              {isSameDay(startDt, endDt) ? (
                 <>
                   <div className="text-sm text-gray-600">{formatDateOnly(startDt)}</div>
                   <div className="text-sm text-gray-600">
@@ -258,7 +186,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
         <Button
           showAnchorIcon
           as={Link}
-          href={googleLink}
+          href={generateGoogleCalendarLink(event, startStr, endStr)}
           target="_blank"
           rel="noopener noreferrer"
           variant="ghost"
@@ -271,7 +199,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
         <Button
           showAnchorIcon
           as={Link}
-          href={outlookLink}
+          href={generateOutlookLink(event, startStr, endStr)}
           target="_blank"
           rel="noopener noreferrer"
           variant="ghost"
@@ -296,7 +224,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
         <Button
           showAnchorIcon
           as={Link}
-          href={office365Link}
+          href={generateOffice365Link(event, startStr, endStr)}
           target="_blank"
           rel="noopener noreferrer"
           variant="ghost"
@@ -309,7 +237,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
         <Button
           showAnchorIcon
           as={Link}
-          href={yahooLink}
+          href={generateYahooCalendarLink(event, startStr, endStr)}
           target="_blank"
           rel="noopener noreferrer"
           variant="ghost"
@@ -358,7 +286,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
                 params.set('et', event.eTime);
                 params.set('tz', event.timezone);
                 if (event.isAllDay) params.set('a', '1');
-                return `/?${params.toString()}`;
+                return `${urlPrefix}?${params.toString()}`;
               })()}
               size="sm"
               rel="noopener noreferrer"

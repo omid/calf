@@ -29,6 +29,7 @@ import {
   to24Hour,
   toLocaleTimeFormat,
   isLink,
+  urlPrefix,
 } from './helpers';
 import { initialForm, parseStandardParams } from './eventForm';
 import { CalendarDate } from '@internationalized/date';
@@ -44,7 +45,6 @@ const FixedLabel = ({ children }: { children: React.ReactNode }) => (
 function App() {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState<'form' | 'share'>('form');
-  const urlPrefix = import.meta.env.MODE === 'production' ? '/calf' : '';
   const origin = window.location.origin;
   // controlled input for Autocomplete so default timeZone is visible
   // date values are managed via HeroUI DateInput onChange and stored in form
@@ -193,7 +193,6 @@ function App() {
       if (typeof obj.eTime === 'string') mapped.eTime = obj.eTime;
       if (typeof obj.timezone === 'string') mapped.timezone = obj.timezone;
       if (typeof obj.isAllDay === 'boolean') mapped.isAllDay = obj.isAllDay;
-
       // parse date strings like YYYY-MM-DD into CalendarDate
       if (typeof obj.sDate === 'string') {
         const parts = obj.sDate.split('-').map(Number);
@@ -410,6 +409,7 @@ function App() {
                               allowsCustomValue
                               isClearable={false}
                               defaultSelectedKey={form.sTime}
+                              inputValue={toLocaleTimeFormat(form.sTime)}
                               isVirtualized={false}
                               onInputChange={onChangeStartTime}
                             >
