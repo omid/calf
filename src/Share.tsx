@@ -120,7 +120,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
                 href={
                   isLink(event.location)
                     ? event.location
-                    : `https://www.google.com/maps/search/?api=1&query=${location}`
+                    : `https://www.google.com/maps/search/?api=1&query=${event.location}`
                 }
                 target="_blank"
                 rel="noopener noreferrer"
@@ -286,7 +286,7 @@ export default function Share({ isDark }: { isDark: boolean }) {
                 params.set('et', event.eTime);
                 params.set('tz', event.timezone);
                 if (event.isAllDay) params.set('a', '1');
-                return `${urlPrefix}?${params.toString()}`;
+                return `${urlPrefix}/?${params.toString()}`;
               })()}
               size="sm"
               rel="noopener noreferrer"
