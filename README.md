@@ -21,10 +21,10 @@ Suitable to share an event on social media posts or emails.
 ---
 
 [![Deploy](https://github.com/omid/calf/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/omid/calf/actions/workflows/deploy.yml)
-[![Live](https://img.shields.io/badge/live-calf%20on%20gh%20pages-4caf50.svg)](https://omid.github.io/calf/)
+[![Live](https://img.shields.io/badge/live-calf%20on%20gh%20pages-4caf50.svg)](https://calf.fyi/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 
-**Live app:** <https://omid.github.io/calf/>\
+**Live app:** <https://calf.fyi/>\
 **Donate:** <https://github.com/sponsors/omid>
 
 ---

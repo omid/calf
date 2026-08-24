@@ -5,7 +5,8 @@ import { DateTime } from 'luxon';
 const te = new TextEncoder();
 const td = new TextDecoder();
 
-export const urlPrefix = import.meta.env.MODE === 'production' ? '/calf' : '';
+// Derived from Vite's `base` so it stays correct if the site moves (root domain, subpath, …).
+export const urlPrefix = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 /** Always return a fresh, plain ArrayBuffer (never SharedArrayBuffer) */
 function toAB(u8: Uint8Array): ArrayBuffer {

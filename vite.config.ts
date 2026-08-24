@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   return {
     plugins: [
       tailwindcss(),
@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
         gzipSize: true,
       }),
     ],
-    base: mode === "production" ? "/calf/" : "/",
+    base: "/",
     build: {
       rollupOptions: {
         input: {
